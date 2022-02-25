@@ -85,3 +85,8 @@
     - [X] 리뷰 코멘트 작성 
     - [X] 리뷰 코멘트 수정 (리뷰 사용자 체크 후 수정 기능 수행)
     - [X] 리뷰 코멘트 삭제 (리뷰 사용자 체크 후 삭제 기능 수행)
+
+### 동작 모습
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/66311276/155641229-98ba8550-d04e-47b8-adc0-c69b25a59e68.gif" width = 750, height=450>
+</p>
