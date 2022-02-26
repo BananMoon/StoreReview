@@ -6,24 +6,25 @@ import com.review.storereview.common.exception.PersonIdNotFoundException;
 import com.review.storereview.dto.ResponseJsonObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * controller 전역적인 예외처리
+ * Class       : GlobalExceptionHandler
+ * Author      : 문 윤 지
+ * Description : controller에서 발생하는 전역적인 예외처리 핸들러
+ * History     : [2022-01-08] - Class Create
  */
-//@RestControllerAdvice(basePackages = "com.review.storereview.controller.*")   // @ControllerAdvice(스프링 빈으로 등록되어 전역적 에러를 핸들링) + json형식의 파싱이 가능
 @ControllerAdvice
-public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+public class GlobalExceptionHandler {
     // 사용자 정의 예외
-
-    // 파라미터 유효성 검사 문제 Exception
-    @ExceptionHandler(ParamValidationException.class)
-    public ResponseEntity<ResponseJsonObject> handleParamValidationException(ParamValidationException ex) {
-        System.out.println("GlobalExceptionHandler.handleParamValidationException 호출됨.============");
-        return new ResponseEntity<>(ex.getResponseJsonObject(), HttpStatus.BAD_REQUEST);
-    }
     @ExceptionHandler(PersonAlreadyExistsException.class)  // 회원가입 시 이미 존재하는 회원이 있을 경우 호출
     public ResponseEntity<ResponseJsonObject> handlePersonAlreadyExistsException
             (PersonAlreadyExistsException ex) {
@@ -33,6 +34,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(PersonIdNotFoundException.class)  // 존재하지 않는 회원 조회할 경우 호출
     public ResponseEntity<ResponseJsonObject> handlePersonIdNotFoundException
             (PersonIdNotFoundException ex) {
+
         return new ResponseEntity<>(ex.getResponseJsonObject(), HttpStatus.NOT_FOUND);
+    }
+    // 파라미터 유효성 검사 문제 Exception
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Object handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        System.out.println("GlobalExceptionHandler.handleMethodArgumentNotValidException 호출됨");
+        Map<String, String> parameterErrorMsg = createErrorMsg(ex);
+        ParamValidationException pve = new ParamValidationException(parameterErrorMsg);
+
+        return new ResponseEntity<>(pve.getResponseJsonObject(), HttpStatus.BAD_REQUEST);
+    }
+
+    private Map<String, String> createErrorMsg(BindException ex) {
+        Map<String, String> parameterErrorMsg = new LinkedHashMap<>();
+        List<ObjectError> allErrors = ex.getBindingResult().getAllErrors();
+        int idx = 1;
+        for (ObjectError Error : allErrors) {
+            parameterErrorMsg.put("Error"+ idx++, Error.getDefaultMessage());
+        }
+        return parameterErrorMsg;
     }
 }
