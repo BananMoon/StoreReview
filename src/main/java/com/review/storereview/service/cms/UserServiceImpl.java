@@ -9,6 +9,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+/**
+ * Class       : UserServiceImpl
+ * Author      : 문 윤 지
+ * Description : 회원가입 서비스
+ * History     : [2022-01-02] - Class Create
+ */
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements BaseUserService {
@@ -18,19 +25,17 @@ public class UserServiceImpl implements BaseUserService {
     private static int SAID_NUM = 0;
     private static String SAID_CHAR_RV = "RV"; // 일반 회원가입의 SAID는 "REVIEW"
 
-//    private static String KEY = "12345678901234567890123456789012"; // 암호화를 위한 key (256bit , 32byte 문자열)
     private final BaseUserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;     // 암호화
-    private ResponseJsonObject resDto;
     /**
      * 회원 가입 서비스
      * @param userSaveRequestDto
      * @return User
      */
     @Override
-    public boolean join(UserSaveRequestDto userSaveRequestDto)  {
+    public void join(UserSaveRequestDto userSaveRequestDto)  {
         // 1. 중복 회원 검증 (id)
-        validateDuplicateUserByUserId(userSaveRequestDto.getUserId());
+        checkUserIdDuplicate(userSaveRequestDto.getUserId());
 
         // 2. SUID (CHAR + 10자리 숫자-1씩 증가) 생성
         String suid = SUID_CHAR + String.format("%010d", ++SUID_NUM);
@@ -45,17 +50,13 @@ public class UserServiceImpl implements BaseUserService {
 
         // 4. DB 저장
         userRepository.save(user);
-        System.out.println("사용자 정보 DB 저장 완료");
-        return false;
     }
 
     // 중복 회원 검증
     @Override
-    public void validateDuplicateUserByUserId(String userId) throws PersonAlreadyExistsException {
-        System.out.println("validateDuplicateUser 호출됨");
+    public void checkUserIdDuplicate(String userId)  {
         boolean isExist = userRepository.existsByUserId(userId);
-
-        if (isExist) // 중복이면 true
+        if (isExist)
             throw new PersonAlreadyExistsException();
     }
 }
