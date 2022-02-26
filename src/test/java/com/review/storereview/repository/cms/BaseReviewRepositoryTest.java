@@ -7,6 +7,8 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -27,9 +29,11 @@ import java.util.List;
 //@ExtendWith(SpringExtension.class)
 //@DataJpaTest   // JPA 관련된 설정만 로드, @Transactional 내장, @Entity 스캔
 //@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@SpringBootTest
+//@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class BaseReviewRepositoryTest {
-    @Autowired BaseReviewRepository reviewRepository;
+    @Mock
+    private BaseReviewRepository reviewRepository;
     Integer stars = 4;
 
     @Test
@@ -50,10 +54,9 @@ class BaseReviewRepositoryTest {
         // when
         Review savedReview = reviewRepository.save(review);
         // then
-//        Assertions.assertThat(review).isSameAs(savedReview);
-        Assertions.assertThat(review.getPlaceId()).isEqualTo(savedReview.getPlaceId());
+        Assertions.assertThat(savedReview.getPlaceId()).isEqualTo("1234");
         Assertions.assertThat(savedReview.getReviewId()).isNotNull();
-        Assertions.assertThat(reviewRepository.count()).isEqualTo(1);
+        Assertions.assertThat(savedReview.getStars()).isEqualTo(4);
     }
 
     @Test

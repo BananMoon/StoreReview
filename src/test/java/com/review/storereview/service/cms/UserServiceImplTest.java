@@ -17,6 +17,8 @@ import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
@@ -31,40 +33,26 @@ class UserServiceImplTest {
     LocalDate birthDate = LocalDate.of(1999, 11, 15);
 
     @Test
-    public void 유저_생성(@Mock UserServiceImpl userService) {
+    public void 유저_생성() {
         // given
-        UserSaveRequestDto userSaveRequestDto = UserSaveRequestDto.builder()     // hibernate: 같은 KEY값은 UPDATE
-                .userId("moonz99").name("문").nickname("moonz").password("1234567")
-                .birthDate(birthDate).gender(Gender.W).phone("01012345678")
-                .build();
+        UserSaveRequestDto userSaveRequestDto = new UserSaveRequestDto("moonz99@naver.com", "문", "moonz", "1234567", birthDate, Gender.W, "01012345678");    // hibernate: 같은 KEY값은 UPDATE
+
         // when
         userService.join(userSaveRequestDto);
     }
 
-    @Transactional  // 테스트 실행 후 다시 Rollback 된다. (@Commit 붙여줄 경우 테스트 시 실행된 트랜잭션이 커밋되어 롤백되지않는다.)
-    @Commit
+    // 실행 X : Expected com.review.storereview.common.exception.PersonAlreadyExistsException to be thrown, but nothing was thrown.
     @Test
     @DisplayName("이미 있는 ID로 회원가입시 실패")
     public void 중복회원생성_예외() throws RuntimeException {
         // given
         LocalDate birthDate = LocalDate.now();
-        UserSaveRequestDto userSaveRequestDto = UserSaveRequestDto.builder().userId("banan99").name("뭉지").nickname("moon").password("123456").birthDate(birthDate).gender(Gender.W).phone("01013572468")
+        UserSaveRequestDto userSaveRequestDto = UserSaveRequestDto.builder().userId("banan99@naver.com").name("뭉지").nickname("moon").password("123456").birthDate(birthDate).gender(Gender.W).phone("01013572468")
                 .build();
-
-        try {
-            userService.join(userSaveRequestDto);
-            userService.join(userSaveRequestDto);
-//            fail(); //예외처리 안 터지면 실패
-        } catch (PersonAlreadyExistsException e) {
-            Assertions.assertThat(e).isInstanceOf(PersonAlreadyExistsException.class);
-        }
-//        assertThrows(PersonAlreadyExistsException.class,
-//                () -> {
-//                    userService.join(userSaveRequestDto);
-//
-//                    userService.join(userSaveRequestDto);
-//                });
-//    }
-
+        // when
+        userService.join(userSaveRequestDto);
+        PersonAlreadyExistsException ex = assertThrows(PersonAlreadyExistsException.class,
+                () -> userService.join(userSaveRequestDto));
+//        assertThat(ex.getMessage()).isEqualTo("이미 존재하는 사용자입니다.");
     }
 }
