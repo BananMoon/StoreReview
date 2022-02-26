@@ -1,13 +1,18 @@
 package com.review.storereview.common;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
 /** Class       : AppConfig (Configuration)
@@ -16,7 +21,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  *  History     : [2022-01-03] - Temp
  */
 @Configuration
-public class AppConfig {
+@RequiredArgsConstructor
+//public class AppConfig {
+public class AppConfig implements WebMvcConfigurer {
+    private final MultipartHandlerInterceptor multipartHandlerInterceptor;
 
     @Bean  // 어떤 암호화방식 사용할 것인지 빈 등록
     public PasswordEncoder passwordEncoder() {
@@ -24,10 +32,15 @@ public class AppConfig {
     }
 
     @Bean
-    public ObjectMapper objectMapper()
-    {
+    public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);   // Java 객체를 JSON으로 Serialize할 때 null값은 제외
-        return  objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper.registerModule(new JavaTimeModule());
+    }
+
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(multipartHandlerInterceptor)
+                .addPathPatterns("/review")
+                .addPathPatterns("/reviews/**");
     }
 }
