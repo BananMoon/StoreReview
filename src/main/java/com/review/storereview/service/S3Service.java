@@ -10,7 +10,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.util.CollectionUtils;
 import com.review.storereview.common.exception.ParamValidationException;
-import com.review.storereview.dto.request.FileInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -20,16 +19,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-/**
- * Class       : S3Service
- * Author      : 문 윤 지
- * Description : AWS S3 업로드 관련 기능 메서드
- * History     : [2022-01-23] - Class Create
- */
+
 @Service
 @RequiredArgsConstructor
 public class S3Service {
@@ -63,16 +56,16 @@ public class S3Service {
 
     /**
      * 새로운 파일을 업로드한다.
-     * @param fileInfoDto
+     * @param multipartFile
      * @return 업로드한 이미지파일의 url 반환
      */
     @Transactional
-    public String uploadFileByDto(FileInfoDto fileInfoDto) {
+    public String uploadFile(MultipartFile multipartFile) {
         // 1.  중복아닌 이름 생성  ex) {UUID}_{파일명} +
-        String fileName = createFileName(getFileExtension(fileInfoDto.getOriginalFileName()));
+        String fileName = createFileName(getFileExtension(multipartFile.getOriginalFilename()));
 
         // 2. ObjectMetadata로 변환 및 S3 업로드
-        String uploadImageUrl = putS3ByDto(fileInfoDto, fileName);
+        String uploadImageUrl = putS3(multipartFile, fileName);
         return uploadImageUrl;
     }
 
@@ -83,22 +76,21 @@ public class S3Service {
 
     /**
      * 실제 s3에 이미지를 업로드한 후 접근 가능한 주소를 반환한다.
-     * @param uploadFileInfoDto
+     * @param uploadFile
      * @param fileName
      */
-    private String putS3ByDto(FileInfoDto uploadFileInfoDto, String fileName) {
+    private String putS3(MultipartFile uploadFile, String fileName) {
         ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentLength(uploadFileInfoDto.getSize());
-        objectMetadata.setContentType(uploadFileInfoDto.getContentType());
-//        objectMetadata.setContentType("multipart/form-data");
-       /* try(InputStream inputStream = uploadFileInfoDto.getInputStream()) {
+        objectMetadata.setContentLength(uploadFile.getSize());
+        objectMetadata.setContentType(uploadFile.getContentType());
+        try(InputStream inputStream = uploadFile.getInputStream()) {
             s3Client.putObject(
                     new PutObjectRequest(bucketName, fileName, inputStream, objectMetadata)  // {S3 주소}/{UUID}_{파일명} 경로로 파일 업로드
                             .withCannedAcl(CannedAccessControlList.PublicRead)  // 누구나 파일 읽기 가능
             );
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다.");
-        }*/
+        }
         // TODO url을 전달할 지 파일명을 전달할지 결정해야함 with 프론트
         return s3Client.getUrl(bucketName, fileName).toString();
     }
@@ -133,7 +125,7 @@ public class S3Service {
      * 2. 추가 : 1) imgFile 업로드 2) 업로드한 imgUrl을 dto.imgUrl에 추가
      * 3. review.setImgUrl()
      */
-    public List<String> saveOrDeleteImg (List<String> imgUrlsFromDB, List<String> remainingImgUrls, List<FileInfoDto> addedFileInfoDtos) {
+    public List<String> saveOrDeleteImg (List<String> imgUrlsFromDB, List<String> remainingImgUrls, List<MultipartFile> addedImgFiles) {
         // 반환할 imgUrl에 남은 imgUrl 미리 저장
         List<String> renewImgUrls = remainingImgUrls;
 
@@ -154,10 +146,10 @@ public class S3Service {
         }
 
         // 2. 추가된 이미지파일 추가
-        if (!CollectionUtils.isNullOrEmpty(addedFileInfoDtos)) {
+        if (!CollectionUtils.isNullOrEmpty(addedImgFiles)) {
             // s3 업로드 및 url 추가
-            for (FileInfoDto fileInfoDto : addedFileInfoDtos) {
-                String imgUrl = uploadFileByDto(fileInfoDto);
+            for (MultipartFile imgFile : addedImgFiles) {
+                String imgUrl = uploadFile(imgFile);
                 renewImgUrls.add(imgUrl);    // 기존 imgUrls에 업로드된 url 추가
             }
         }

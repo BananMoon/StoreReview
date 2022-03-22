@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 
 /** Class       : RqeustAroundLogAop (AOP)
  *  Author      : 조 준 희
@@ -52,16 +53,30 @@ public class RequestAroundLogAop {
     //   *Controller 클래스의 모든 메서드 Around => Pointcut 설정
     @Around(value = "execution(* com.review.storereview.controller..*Controller.*(..))")
     public Object ApiLog(ProceedingJoinPoint joinPoint) throws Throwable { // 파라미터 : 프록시 대상 객체의 메서드를 호출할 때 사용
-        Object[] arguments   = joinPoint.getArgs();
-//        String  inputParam;
-//        for (int i=0; i<arguments.length; i++) {
-//            if (!(arguments[i] instanceof MultipartFile)) {
-//              inputParam += om.writeValueAsString(arguments[i]);
-//        }
+        Object[] arguments  = joinPoint.getArgs();
+        StringBuilder inputParam = new StringBuilder();
+/** for문에서 if문을 탔을 때 모습
+ *     [INPUT]
+ *     {"placeId":"123456","content":"cG9zdG1hbiDshJzrsoQg7YWM7Iqk7Yq47KSRX+umrOu3sCDsl4XrjbDsnbTtirg=","stars":5}, "fileName":hadong2.JPG
+ *     [OUTPUT]
+ *     {"meta":{"statusCode":201,"errorType":null,"errorMsg":null,"parameterErrorMsg":null},"data":null}
+ */
+        for (int i=0; i<arguments.length; i++) {
+            System.out.println(arguments[i].getClass());
+            if (arguments[i] instanceof List) {
+                List<?> listInArgument = (List<?>) arguments[i];
+                if (listInArgument.get(0) instanceof MultipartFile) {
+                    for (int j=0; j< listInArgument.size(); j++)
+                        inputParam.append(", \"fileName\":").append(((MultipartFile)listInArgument.get(j)).getOriginalFilename());
+                }
+            } else {
+                inputParam.append(om.writeValueAsString(arguments[i]));
+            }
+        }
 
         HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
 
-        String  inputParam = "inputParams";
+//        inputParam = new StringBuilder("inputParams");
         String  outputMessage = "" ;
         char apiStatus = 'Y';
         String methodName = "";

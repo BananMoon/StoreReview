@@ -22,13 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-@DisplayName("UserServiceImpl 테스트")
+//@ExtendWith(MockitoExtension.class)
+//@DisplayName("UserServiceImpl 테스트")
 class UserServiceImplTest {
 
-    @Mock private BaseUserRepository userRepository;
-    @Mock private BCryptPasswordEncoder passwordEncoder;
-    @InjectMocks private UserServiceImpl userService;
+    private BaseUserRepository mockRepository = mock(BaseUserRepository.class);
+    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    private UserServiceImpl userService = new UserServiceImpl(mockRepository, passwordEncoder);
 
     LocalDate birthDate = LocalDate.of(1999, 11, 15);
 
@@ -53,6 +54,6 @@ class UserServiceImplTest {
         userService.join(userSaveRequestDto);
         PersonAlreadyExistsException ex = assertThrows(PersonAlreadyExistsException.class,
                 () -> userService.join(userSaveRequestDto));
-//        assertThat(ex.getMessage()).isEqualTo("이미 존재하는 사용자입니다.");
+        assertThat(ex).isInstanceOf(PersonAlreadyExistsException.class);
     }
 }

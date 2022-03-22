@@ -1,6 +1,8 @@
 package com.review.storereview.controller.cms;
 
 import com.review.storereview.common.enumerate.ApiStatusCode;
+import com.review.storereview.common.exception.PersonAlreadyExistsException;
+import com.review.storereview.common.exception.PersonIdNotFoundException;
 import com.review.storereview.dto.ResponseJsonObject;
 import com.review.storereview.service.cms.BaseUserService;
 import com.review.storereview.dto.request.UserSaveRequestDto;
@@ -33,7 +35,11 @@ public class UserApiController {
     @PostMapping("/api/signup")
     public ResponseEntity<ResponseJsonObject> save(@Valid @RequestBody UserSaveRequestDto userSaveRequestDto) throws NoSuchAlgorithmException {
         // 1. join 서비스 로직
-        userService.join(userSaveRequestDto);
+        try {
+            userService.join(userSaveRequestDto);
+        } catch(PersonAlreadyExistsException ex) {
+            return new ResponseEntity<>(ex.getResponseJsonObject(), HttpStatus.BAD_REQUEST);
+        }
         // 2. responseDto 생성
         ResponseJsonObject resDto = ResponseJsonObject.withStatusCode(ApiStatusCode.OK.getCode());
         return new ResponseEntity<>(resDto, HttpStatus.OK);

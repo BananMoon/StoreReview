@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -32,12 +34,15 @@ import static org.mockito.Mockito.when;
  * History     : [2022-01-23]
  */
 //@ExtendWith(MockitoExtension.class)
-@SpringBootTest
+//@SpringBootTest
 class ReviewServiceImplTest {
 //    @Mock BaseReviewRepository reviewRepository;
 //    @InjectMocks ReviewServiceImpl reviewService;
     @Autowired BaseReviewRepository reviewRepository;
     @Autowired ReviewServiceImpl reviewService;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BaseReviewRepository mockRepository = mock(BaseReviewRepository.class);
+    private final ReviewServiceImpl mockService = new ReviewServiceImpl(mockRepository);
 
     @Test
     void 리뷰_업로드() {
@@ -57,7 +62,7 @@ class ReviewServiceImplTest {
                         .said("RV0000000001")
                         .build())
                 .build();
-        Review testUploadedReview = reviewService.uploadReview(review);
+        Review testUploadedReview = mockService.uploadReview(review);
 
         // verify
         Assertions.assertThat(testUploadedReview.getContent()).isEqualTo("리뷰 서비스 테스트3");

@@ -2,14 +2,16 @@ package com.review.storereview.controller.cms;
 
 import com.amazonaws.util.CollectionUtils;
 import com.review.storereview.common.enumerate.ApiStatusCode;
+import com.review.storereview.common.exception.ParamValidationException;
 import com.review.storereview.common.exception.PersonIdNotFoundException;
-import com.review.storereview.common.exception.ReviewNotFoundException;
 import com.review.storereview.common.utils.CryptUtils;
 import com.review.storereview.common.utils.StringUtil;
 import com.review.storereview.dao.JWTUserDetails;
 import com.review.storereview.dao.cms.Review;
+import com.review.storereview.dao.cms.User;
 import com.review.storereview.dto.ResponseJsonObject;
-import com.review.storereview.dto.request.*;
+import com.review.storereview.dto.request.ReviewUpdateRequestDto;
+import com.review.storereview.dto.request.ReviewUploadRequestDto;
 import com.review.storereview.dto.response.ReviewFindResponseDto;
 import com.review.storereview.dto.response.ReviewFindListResponseDto;
 import com.review.storereview.dto.response.ReviewResponseDto;
@@ -25,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -57,7 +60,7 @@ public class ReviewApiController {
      */
     @GetMapping("/places/{placeId}")
     public ResponseEntity<ResponseJsonObject> findAllReviews(@PathVariable String placeId) {
-        // 1. findAll 서비스 로직 (0개일 경우 빈 값으로 전달)
+        // 1. findAll 서비스 로직
         List<Review> findReviews = reviewService.listAllReviews(placeId);// 해당하는 장소 관련 리뷰들 모두 조회하여 리스트
 
         // 2.1. placeAvgStars 계산
@@ -113,7 +116,7 @@ public class ReviewApiController {
         // 1. 조회 서비스 로직 (리뷰 조회 - userId 조회)
         Review findReview = reviewService.listReview(reviewId);
         if (findReview == null) {
-            return new ResponseEntity<>(new ReviewNotFoundException().getResponseJsonObject(),
+            return new ResponseEntity<>(new PersonIdNotFoundException().getResponseJsonObject(),
                     HttpStatus.BAD_REQUEST);
         }
         // 2. content, ImgUrl 인코딩
@@ -151,21 +154,12 @@ public class ReviewApiController {
 
     /**
      * {@Summary 리뷰 작성 컨트롤러}
+     * @param requestDto
      */
     @PostMapping("/review")
     public ResponseEntity<ResponseJsonObject> uploadReview(
-            @ModelAttribute ReviewUploadWithFileRequestDto reviewUploadWithFileRequestDto) {
-//            @ModelAttribute("key") ReviewUploadRequestDto requestDto, @ModelAttribute("imgFileList") FileInfoDtos fileInfoDtos) {
-
-        System.out.println(reviewUploadWithFileRequestDto.getStars());
-        System.out.println(Objects.isNull(reviewUploadWithFileRequestDto.getFileInfoDto()));
-//        System.out.println(fileInfoDtos.get(0).getContentType());
-        /*ReviewUploadRequestDto requestDto = reviewUploadWithFileRequestDto.getReviewUploadRequestDto();
-        FileInfoDtos fileInfoDtos = reviewUploadWithFileRequestDto.getFileInfoDtos();
-        System.out.println(Objects.isNull(fileInfoDtos.getFileInfoDtos()));
-        System.out.println(Objects.isNull(requestDto));  // null
-
-
+            @RequestPart(value = "imgFileList", required = false) List<MultipartFile> imgFiles,
+            @RequestParam("key") ReviewUploadRequestDto requestDto) {
         // 파라미터 검증
         Map<String, String> errorsMap = checkParameterValid(requestDto);
         if (errorsMap.size() >= 1) {
@@ -180,7 +174,6 @@ public class ReviewApiController {
         // 2. 인코딩된 content 디코딩
         String decodedContent = CryptUtils.Base64Decoding(requestDto.getContent());
 
-//        System.out.println("imgFiles 비었니? " + fileInfoDtos.isNull());
         // 3. 리뷰 생성
         Review review = new Review().builder()
                 .placeId(requestDto.getPlaceId())
@@ -194,7 +187,7 @@ public class ReviewApiController {
                 .isDelete(0)
                 .build();
         //  4. 이미지파일 s3 저장 (업로드할 이미지가 있는 경우에)
-        List<String> uploadedImgUrls = uploadImgUrls(fileInfoDtos);
+        List<String> uploadedImgUrls = uploadImgUrls(imgFiles);
         // 이중 체크 (db에 null로 저장되지 않는 문제
         if (CollectionUtils.isNullOrEmpty(uploadedImgUrls))
             review.setImgUrl(null);  // null
@@ -228,9 +221,9 @@ public class ReviewApiController {
             logger.error("ReviewApiController.uploadReview Method/ Said Encoding Exception : " + ex.getMessage());
             ResponseJsonObject resDto = ResponseJsonObject.withError(ApiStatusCode.SYSTEM_ERROR.getCode(), ApiStatusCode.SYSTEM_ERROR.getType(), ApiStatusCode.SYSTEM_ERROR.getMessage());
             return new ResponseEntity<>(resDto, HttpStatus.INTERNAL_SERVER_ERROR);
-        }*/
+        }
 
-        ResponseJsonObject resDto = ResponseJsonObject.withStatusCode(ApiStatusCode.CREATED.getCode());
+        ResponseJsonObject resDto = ResponseJsonObject.withStatusCode(ApiStatusCode.CREATED.getCode()).setData(reviewResponseDto);
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
@@ -258,13 +251,13 @@ public class ReviewApiController {
     /**
      * {@Summary 리뷰 업데이트 컨트롤러}
      * @param reviewId
-     * @param fileInfoDtos
+     * @param imgFiles
      * @param requestDto
      */
 //    @PutMapping("/reviews/{reviewId}")
     @RequestMapping(value="/reviews/{reviewId}", method = RequestMethod.PUT)
     public ResponseEntity<ResponseJsonObject> updateReview(@PathVariable Long reviewId,
-                                                           @RequestParam(value = "imgFileList", required = false) List<FileInfoDto> fileInfoDtos,
+                                                           @RequestPart(value = "imgFileList", required = false) List<MultipartFile> imgFiles,
                                                            @RequestParam(value = "key") ReviewUpdateRequestDto requestDto) {
         // 1. 인증된 사용자 토큰 값
         // 1-1. 인증된 사용자의 인증 객체 가져오기
@@ -281,13 +274,13 @@ public class ReviewApiController {
             return new ResponseEntity<>(ResponseJsonObject.withError(ApiStatusCode.FORBIDDEN.getCode(), ApiStatusCode.FORBIDDEN.getType(), ApiStatusCode.FORBIDDEN.getMessage()), HttpStatus.FORBIDDEN);
 
         // 3. 리뷰 생성
-        Review renewReview = Review.builder()
+        Review renewReview = new Review().builder()
                 .content(CryptUtils.Base64Decoding(requestDto.getContent()))
                 .stars(requestDto.getStars())
                 .build();
         List<String> encodedImgUrlList = new ArrayList<>();
         // 4. imgUrl : save or delete / 인코딩
-        List<String> renewImgUrls = s3Service.saveOrDeleteImg(findReview.getImgUrl(), requestDto.getImgUrl(), fileInfoDtos);
+        List<String> renewImgUrls = s3Service.saveOrDeleteImg(findReview.getImgUrl(), requestDto.getImgUrl(), imgFiles);
         if(CollectionUtils.isNullOrEmpty(renewImgUrls))
             renewReview.setImgUrl(null);
         else {
@@ -357,13 +350,12 @@ public class ReviewApiController {
         return false;
     }
 
-    private List<String> uploadImgUrls(FileInfoDtos uploadedFileInfoDtos) {
+    private List<String> uploadImgUrls(List<MultipartFile> uploadedimgFiles) {
         List<String> uploadedImgUrls;
-
-        if (!CollectionUtils.isNullOrEmpty(uploadedFileInfoDtos.getFileInfoDtos())) {   //  빈 dto인지 체크
+        if (!CollectionUtils.isNullOrEmpty(uploadedimgFiles)) {   //  content길이로 빈 파일인지 체크
             uploadedImgUrls = new ArrayList<>();
-            for (FileInfoDto fileInfoDto : uploadedFileInfoDtos.getFileInfoDtos())
-                uploadedImgUrls.add(s3Service.uploadFileByDto(fileInfoDto));
+            for (MultipartFile imgFile : uploadedimgFiles)
+                uploadedImgUrls.add(s3Service.uploadFile(imgFile));
             return uploadedImgUrls;
         } else
             return null;
