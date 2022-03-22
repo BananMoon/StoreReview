@@ -65,7 +65,7 @@ public class S3Service {
         String fileName = createFileName(getFileExtension(multipartFile.getOriginalFilename()));
 
         // 2. ObjectMetadata로 변환 및 S3 업로드
-         String uploadImageUrl = putS3(multipartFile, fileName);
+        String uploadImageUrl = putS3(multipartFile, fileName);
         return uploadImageUrl;
     }
 
@@ -135,7 +135,7 @@ public class S3Service {
             if (!CollectionUtils.isNullOrEmpty(imgUrlsFromDB)) // 원래 이미지가 있는 리뷰의 경우, 삭제 진행
                 deleteFiles(imgUrlsFromDB);
         }
-       else {  // 전달된 남은 imgUrl이 있고
+        else {  // 전달된 남은 imgUrl이 있고
             if (!CollectionUtils.isNullOrEmpty(imgUrlsFromDB)) // 원래 이미지가 있는 리뷰의 경우, 비교 후 삭제 진행
                 remainingImgUrls.forEach(remainingImgUrl -> {
                     imgUrlsFromDB.removeIf(dbUrl -> dbUrl.equals(remainingImgUrl));    // db의 url리스트와 다른지 비교하면서 같으면  제거. 남은 url은 제거할 url
@@ -145,7 +145,7 @@ public class S3Service {
                 deleteFiles(imgUrlsFromDB);
         }
 
-       // 2. 추가된 이미지파일 추가
+        // 2. 추가된 이미지파일 추가
         if (!CollectionUtils.isNullOrEmpty(addedImgFiles)) {
             // s3 업로드 및 url 추가
             for (MultipartFile imgFile : addedImgFiles) {
@@ -153,7 +153,7 @@ public class S3Service {
                 renewImgUrls.add(imgUrl);    // 기존 imgUrls에 업로드된 url 추가
             }
         }
-       return renewImgUrls;
+        return renewImgUrls;
     }
 
     /**
@@ -164,7 +164,7 @@ public class S3Service {
         if (!Objects.isNull(objects))
             if (!objects.isEmpty()) {
                 return true;
-        }
+            }
         return false;
     }
 }
