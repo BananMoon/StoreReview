@@ -33,6 +33,10 @@
     - Java 8
     - Spring Boot 2.5.x
     - Spring Data JPA
+- **Library**
+    - Spring Security
+    - Spring Data JPA
+    - slf4j
 - **Build Tool**
     - Gradle
 - **DataBase**
