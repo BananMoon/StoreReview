@@ -1,8 +1,8 @@
 # StoreReview
 리뷰 서비스를 제공하는 웹 사이트 개발 프로젝트입니다. 😊
 
-[웹사이트 보러가기](https://store-review.nextwing.me/)
-
+[웹사이트 보러가기😋](https://store-review.nextwing.me/)<br>
+[Back-End repository](https://github.com/RedJunHee/StoreReview) 👈 해당 repository에서 Pull Request 기록을 볼 수 있습니다!<br>
 [Front-End repository](https://github.com/ghtea/store-review-fe)
 
 ## 팀원 🧑🏻‍🤝‍🧑🏻
@@ -71,8 +71,8 @@
 - [X] DB 설계 & ERD 작성
 - [X] 프로젝트 세팅
 - [X] 모델 정의 및 MySQL 연동
-- [ ] [테스트 코드](https://github.com/RedJunHee/StoreReview/tree/master/src/test/java/com/review/storereview) 작성
-- [ ] 기능 구현
+- [X] [일부 테스트 코드](https://github.com/RedJunHee/StoreReview/tree/master/src/test/java/com/review/storereview) 작성
+- [X] 기능 구현
     - [X] Spring Security JWT 인증/인가 기능 구현
     - [X] Utils 기능 구현
       - AES256, BCrypt, Base64 Tool 개발
