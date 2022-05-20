@@ -5,7 +5,6 @@ import com.review.storereview.repository.cms.LogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 /** Class       : LogService (Service)
  *  Author      : 조 준 희
  *  Description : 로그 관련 서비스 객체  ( Interface의 필요성 아직 모르겠어서 없음. )
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class LogService {
-
     private final LogRepository logRepository;
 
     @Autowired
@@ -34,5 +32,5 @@ public class LogService {
         }catch (Exception ex) {
             throw ex;
         }
-}
+    }
 }
