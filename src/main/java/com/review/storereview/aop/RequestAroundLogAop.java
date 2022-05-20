@@ -9,9 +9,11 @@ import com.review.storereview.dao.JWTUserDetails;
 import com.review.storereview.dao.cms.ApiLog;
 import com.review.storereview.dto.ResponseJsonObject;
 import com.review.storereview.service.cms.LogService;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,39 +46,41 @@ public class RequestAroundLogAop {
 
     @Autowired
     public RequestAroundLogAop(LogService logService) {
+//        this.om = new ObjectMapper();
         this.om = new ObjectMapper().registerModule(new JavaTimeModule())
                 .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS,false);
         this.logService = logService;
     }
+    @Pointcut("execution(public * com.review.storereview.controller..*Controller.*(..))")
+    public void logPointCut() {
+    }
 
-    //  execution(* com.review.storereview.controller 하위 패키지 내에
-    //   *Controller 클래스의 모든 메서드 Around => Pointcut 설정
-    @Around(value = "execution(* com.review.storereview.controller..*Controller.*(..))")
+    /** for문에서 if문을 탔을 때 모습
+     *     [INPUT]
+     *     {"placeId":"123456","content":"cG9zdG1hbiDshJzrsoQg7YWM7Iqk7Yq47KSRX+umrOu3sCDsl4XrjbDsnbTtirg=","stars":5}, "fileName":hadong2.JPG
+     *     [OUTPUT]
+     *     {"meta":{"statusCode":201,"errorType":null,"errorMsg":null,"parameterErrorMsg":null},"data":null}
+     */
+    // Pointcut 설정 : *Controller 클래스의 모든 메서드에 필터 적용
+    // @Around : 한 개 변수를 실행시간 전,후로 공유해야 하기 때문
+    @Around("logPointCut()")
     public Object ApiLog(ProceedingJoinPoint joinPoint) throws Throwable { // 파라미터 : 프록시 대상 객체의 메서드를 호출할 때 사용
         Object[] arguments  = joinPoint.getArgs();
         StringBuilder inputParam = new StringBuilder();
-/** for문에서 if문을 탔을 때 모습
- *     [INPUT]
- *     {"placeId":"123456","content":"cG9zdG1hbiDshJzrsoQg7YWM7Iqk7Yq47KSRX+umrOu3sCDsl4XrjbDsnbTtirg=","stars":5}, "fileName":hadong2.JPG
- *     [OUTPUT]
- *     {"meta":{"statusCode":201,"errorType":null,"errorMsg":null,"parameterErrorMsg":null},"data":null}
- */
         for (int i=0; i<arguments.length; i++) {
-            System.out.println(arguments[i].getClass());
             if (arguments[i] instanceof List) {
                 List<?> listInArgument = (List<?>) arguments[i];
                 if (listInArgument.get(0) instanceof MultipartFile) {
-                    for (int j=0; j< listInArgument.size(); j++)
-                        inputParam.append(", \"fileName\":").append(((MultipartFile)listInArgument.get(j)).getOriginalFilename());
+                    for (int j = 0; j < listInArgument.size(); j++)
+                        inputParam.append(", \"fileName\":").append(((MultipartFile) listInArgument.get(j)).getOriginalFilename());
+                } else {
+                    inputParam.append(om.writeValueAsString(listInArgument.get(0)));
                 }
-            } else {
-                inputParam.append(om.writeValueAsString(arguments[i]));
             }
         }
 
         HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
 
-//        inputParam = new StringBuilder("inputParams");
         String  outputMessage = "" ;
         char apiStatus = 'Y';
         String methodName = "";
