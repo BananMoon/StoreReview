@@ -19,7 +19,6 @@ public class CustomAuthorizationException  {
     }
 
     public CustomAuthorizationException() {
-
         responseJsonObject = ResponseJsonObject.withStatusCode(errorStatusCode.getCode());
     }
 

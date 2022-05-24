@@ -3,12 +3,10 @@ package com.review.storereview.common.exception.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.review.storereview.common.exception.CustomAuthorizationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
