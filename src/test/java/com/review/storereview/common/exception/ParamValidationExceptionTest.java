@@ -23,7 +23,9 @@ class ParamValidationExceptionTest {
     {
         ParamValidationException ex =  Assertions.assertThrows(ParamValidationException.class, ()
         ->{
-            throw new ParamValidationException(new HashMap<String, String>(null));  // 추가 수정 필요!!
+            throw new ParamValidationException(new HashMap<String, String>() {{
+                put("testKey", "testValue");
+            }});
         });
 
         try {

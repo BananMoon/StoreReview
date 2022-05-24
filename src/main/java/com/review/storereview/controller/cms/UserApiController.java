@@ -35,11 +35,16 @@ public class UserApiController {
     @PostMapping("/api/signup")
     public ResponseEntity<ResponseJsonObject> save(@Valid @RequestBody UserSaveRequestDto userSaveRequestDto) throws NoSuchAlgorithmException {
         // 1. join 서비스 로직
+        userService.join(userSaveRequestDto);
+/*
         try {
-            userService.join(userSaveRequestDto);
+
         } catch(PersonAlreadyExistsException ex) {
+            System.out.println("UserApiController.save에서 예외 catch!");
             return new ResponseEntity<>(ex.getResponseJsonObject(), HttpStatus.BAD_REQUEST);
         }
+*/
+        System.out.println("예외 처리 발생 후 userApiController line");
         // 2. responseDto 생성
         ResponseJsonObject resDto = ResponseJsonObject.withStatusCode(ApiStatusCode.OK.getCode());
         return new ResponseEntity<>(resDto, HttpStatus.OK);

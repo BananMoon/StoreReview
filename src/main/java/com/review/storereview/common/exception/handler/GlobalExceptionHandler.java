@@ -1,8 +1,6 @@
 package com.review.storereview.common.exception.handler;
 
-import com.review.storereview.common.exception.ParamValidationException;
-import com.review.storereview.common.exception.PersonAlreadyExistsException;
-import com.review.storereview.common.exception.PersonIdNotFoundException;
+import com.review.storereview.common.exception.*;
 import com.review.storereview.dto.ResponseJsonObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,9 +32,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PersonIdNotFoundException.class)  // 존재하지 않는 회원 조회할 경우 호출
     public ResponseEntity<ResponseJsonObject> handlePersonIdNotFoundException
             (PersonIdNotFoundException ex) {
-
         return new ResponseEntity<>(ex.getResponseJsonObject(), HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(ContentNotFoundException.class)  // 존재하지 않는 콘텐츠 조회할 경우 호출
+    public ResponseEntity<ResponseJsonObject> handleReviewNotFoundException
+            (ContentNotFoundException ex) {
+        return new ResponseEntity<>(ex.getResponseJsonObject(), HttpStatus.NOT_FOUND);
+    }
+
     // 파라미터 유효성 검사 문제 Exception
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Object handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {

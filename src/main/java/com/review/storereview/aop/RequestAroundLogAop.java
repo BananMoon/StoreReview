@@ -70,12 +70,12 @@ public class RequestAroundLogAop {
         for (int i=0; i<arguments.length; i++) {
             if (arguments[i] instanceof List) {
                 List<?> listInArgument = (List<?>) arguments[i];
-                if (listInArgument.get(0) instanceof MultipartFile) {
-                    for (int j = 0; j < listInArgument.size(); j++)
+                for (int j = 0; j < listInArgument.size(); j++) {
+                    if (listInArgument.get(i) instanceof MultipartFile)
                         inputParam.append(", \"fileName\":").append(((MultipartFile) listInArgument.get(j)).getOriginalFilename());
-                } else {
-                    inputParam.append(om.writeValueAsString(listInArgument.get(0)));
                 }
+            } else {
+                inputParam.append(om.writeValueAsString(arguments[i]));
             }
         }
 
@@ -155,5 +155,4 @@ public class RequestAroundLogAop {
 
         return retValue;
     }
-
 }

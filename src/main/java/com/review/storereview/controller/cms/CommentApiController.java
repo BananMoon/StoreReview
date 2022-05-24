@@ -1,14 +1,13 @@
 package com.review.storereview.controller.cms;
 
 import com.review.storereview.common.enumerate.ApiStatusCode;
-import com.review.storereview.common.exception.ContentNotFound;
+import com.review.storereview.common.exception.ContentNotFoundException;
 import com.review.storereview.common.utils.CryptUtils;
 import com.review.storereview.common.utils.StringUtil;
 import com.review.storereview.dao.JWTUserDetails;
 import com.review.storereview.dao.cms.Comment;
 import com.review.storereview.dao.cms.User;
 import com.review.storereview.dto.ResponseJsonObject;
-import com.review.storereview.dto.request.CommentDeleteRequestDto;
 import com.review.storereview.dto.request.CommentUpdateRequestDto;
 import com.review.storereview.dto.request.CommentWriteRequestDto;
 import com.review.storereview.dto.response.CommentDeleteResponseDto;
@@ -52,11 +51,11 @@ public class CommentApiController {
      * @param reviewId 리뷰 아이디
      * @param pageNo 페이지 번호
      * @return
-     * @throws ContentNotFound
+     * @throws ContentNotFoundException
      */
 
     @GetMapping("/comment/{reviewId}/{pageNo}")
-    public ResponseEntity<ResponseJsonObject> findAllComments(@PathVariable("reviewId") Long reviewId, @PathVariable("pageNo") int pageNo)throws ContentNotFound
+    public ResponseEntity<ResponseJsonObject> findAllComments(@PathVariable("reviewId") Long reviewId, @PathVariable("pageNo") int pageNo)throws ContentNotFoundException
     {
         try {
             // 페이지 요청 객체 생성
@@ -67,8 +66,8 @@ public class CommentApiController {
             if (savedComments.getNumberOfElements() == 0) {
                 // 결과값 리턴
                 // 콘텐츠 없음.... 204 Code
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-                //throw new ContentNotFound();
+//                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                throw new ContentNotFoundException();
             }
 
             // 응답 객체 초기화

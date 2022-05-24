@@ -19,6 +19,7 @@ public class ParamValidationException extends ReviewServiceException{
 
     public ParamValidationException(Map<String, String> parameterErrorMsg) {
         super();
+        System.out.println("ParamValidationException.ParamValidationException 호출됨");
         super.errorStatusCode = ApiStatusCode.PARAMETER_CHECK_FAILED;
         super.responseJsonObject = ResponseJsonObject.withParameterMsg(
                 errorStatusCode.getCode(), errorStatusCode.getType(), errorStatusCode.getMessage(), parameterErrorMsg

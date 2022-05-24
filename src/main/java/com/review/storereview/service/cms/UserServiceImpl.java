@@ -36,6 +36,13 @@ public class UserServiceImpl implements BaseUserService {
     public void join(UserSaveRequestDto userSaveRequestDto)  {
         // 1. 중복 회원 검증 (id)
         checkUserIdDuplicate(userSaveRequestDto.getUserId());
+/*
+        try {
+
+        } catch (PersonAlreadyExistsException pae) {
+            throw new PersonAlreadyExistsException();
+        }
+*/
 
         // 2. SUID (CHAR + 10자리 숫자-1씩 증가) 생성
         String suid = SUID_CHAR + String.format("%010d", ++SUID_NUM);
@@ -47,7 +54,7 @@ public class UserServiceImpl implements BaseUserService {
         // 3. 해쉬 암호화된 비밀번호 인코딩 (bcrypt)
         String encodedPwd = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPwd);
-
+        System.out.println("db 저장 전 line");
         // 4. DB 저장
         userRepository.save(user);
     }

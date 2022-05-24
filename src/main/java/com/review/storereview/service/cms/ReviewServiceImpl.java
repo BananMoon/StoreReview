@@ -1,18 +1,12 @@
 package com.review.storereview.service.cms;
 
-import com.amazonaws.util.CollectionUtils;
-import com.review.storereview.common.exception.ParamValidationException;
-import com.review.storereview.common.exception.ReviewNotFoundException;
+
+import com.review.storereview.common.exception.ContentNotFoundException;
 import com.review.storereview.dao.cms.Review;
-import com.review.storereview.dto.ResponseJsonObject;
 import com.review.storereview.repository.cms.BaseReviewRepository;
-import com.review.storereview.service.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -80,7 +74,7 @@ public class ReviewServiceImpl {
     public void deleteReview(Long reviewId) {
         // 1. 제거할 리뷰 데이터 조회 & null 체크
         Review findReview = Optional.ofNullable(baseReviewRepository.findByReviewIdAndIsDeleteIs(reviewId, 0))
-                .orElseThrow(ReviewNotFoundException::new);
+                .orElseThrow(ContentNotFoundException::new);
 
         // 2. isDelete 업데이트 (서비스 상 제거)
         findReview.updateIsDelete(1);

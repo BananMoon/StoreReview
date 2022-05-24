@@ -1,6 +1,6 @@
 package com.review.storereview.service.cms;
 
-import com.review.storereview.common.exception.ReviewNotFoundException;
+import com.review.storereview.common.exception.ContentNotFoundException;
 import com.review.storereview.dao.cms.Review;
 import com.review.storereview.dao.cms.User;
 import com.review.storereview.dto.request.ReviewUpdateRequestDto;
@@ -9,12 +9,7 @@ import com.review.storereview.repository.cms.BaseReviewRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
@@ -129,11 +124,11 @@ class ReviewServiceImplTest {
         reviewService.deleteReview(reviewId);
 
         // 해당 리뷰가 없다면 ReviewNotFoundException을 던진다.
-        ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class,
+        ContentNotFoundException exception = assertThrows(ContentNotFoundException.class,
                 () -> reviewService.listReview(reviewId));
 
         // then
-        assertEquals("해당 게시물을 찾을 수 없습니다.", exception.getResponseJsonObject().getMeta().getErrorMsg());
+        assertEquals("컨텐츠 없음.", exception.getResponseJsonObject().getMeta().getErrorMsg());
     }
 
     @Test

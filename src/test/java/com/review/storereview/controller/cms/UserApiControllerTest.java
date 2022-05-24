@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.json.GsonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
@@ -37,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 //@WebMvcTest(UserApiController.class)      // @SpringBootTest와 함께 사용  X
 class UserApiControllerTest extends AbstractControllerTest{
     private MockMvc mvc;
+//    private Gson gson;
     @MockBean private UserServiceImpl userService;  // 목 객체
 
     @Autowired
@@ -78,6 +80,7 @@ class UserApiControllerTest extends AbstractControllerTest{
                 .addFilter(delegatingFilterProxy)
                 .alwaysDo(print())
                 .build();
+
     }
 
     /**
@@ -148,5 +151,6 @@ class UserApiControllerTest extends AbstractControllerTest{
                                                             + "}"))
                         .andExpect(status().isOk()))
                         .hasCause(new PersonAlreadyExistsException());
-                }
+    }
+
 }

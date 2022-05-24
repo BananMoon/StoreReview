@@ -2,8 +2,10 @@ package com.review.storereview.controller.cms;
 
 import com.amazonaws.util.CollectionUtils;
 import com.review.storereview.common.enumerate.ApiStatusCode;
+import com.review.storereview.common.exception.CustomAuthorizationException;
 import com.review.storereview.common.exception.ParamValidationException;
 import com.review.storereview.common.exception.PersonIdNotFoundException;
+import com.review.storereview.common.exception.ContentNotFoundException;
 import com.review.storereview.common.utils.CryptUtils;
 import com.review.storereview.common.utils.StringUtil;
 import com.review.storereview.dao.JWTUserDetails;
@@ -116,8 +118,9 @@ public class ReviewApiController {
         // 1. 조회 서비스 로직 (리뷰 조회 - userId 조회)
         Review findReview = reviewService.listReview(reviewId);
         if (findReview == null) {
-            return new ResponseEntity<>(new PersonIdNotFoundException().getResponseJsonObject(),
-                    HttpStatus.BAD_REQUEST);
+            throw new ContentNotFoundException();
+//            return new ResponseEntity<>(new PersonIdNotFoundException().getResponseJsonObject(),
+//                    HttpStatus.BAD_REQUEST);
         }
         // 2. content, ImgUrl 인코딩
         String encodedContent = CryptUtils.Base64Encoding(findReview.getContent());
@@ -322,14 +325,18 @@ public class ReviewApiController {
         // 1. 인증된 사용자 토큰 값
         // 1-1. 인증된 사용자의 인증 객체 가져오기
         Authentication authenticationToken = SecurityContextHolder.getContext().getAuthentication();
+        if (authenticationToken == null) {
+            throw new CustomAuthorizationException();
+        }
         // 1-2. 인증 객체의 유저정보 가져오기
         JWTUserDetails userDetails = (JWTUserDetails) authenticationToken.getPrincipal();
 
         // 2. 유효성 검증
         Review findReview = reviewService.listReview(reviewId);
         if (findReview == null) {
-            return new ResponseEntity<>(new PersonIdNotFoundException().getResponseJsonObject(),
-                    HttpStatus.BAD_REQUEST);
+            throw new ContentNotFoundException();
+//            return new ResponseEntity<>(new PersonIdNotFoundException().getResponseJsonObject(),
+//                    HttpStatus.BAD_REQUEST);
         }
         if (!isWriterCheck(findReview.getUser().getSuid(), userDetails.getSuid()))
             return new ResponseEntity<>(ResponseJsonObject.withError(ApiStatusCode.FORBIDDEN.getCode(), ApiStatusCode.FORBIDDEN.getType(), ApiStatusCode.FORBIDDEN.getMessage()), HttpStatus.FORBIDDEN);
