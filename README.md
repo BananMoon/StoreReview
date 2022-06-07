@@ -29,19 +29,19 @@
     - Ubuntu 20.x
     - Docker Container ( CentOS 7 )
     - Ley's Encrypt SSL Protocol
-- **FrameWork**
+- **Language**
     - Java 8
+- **FrameWork**
     - Spring Boot 2.5.x
-    - Spring Data JPA
-- **Library**
     - Spring Security
+- **Module**
     - Spring Data JPA
     - slf4j
 - **Build Tool**
     - Gradle
 - **DataBase**
     - MySQL
-- **Infra**
+- **Cloud Service**
     - AWS RDS
     - AWS S3
     
