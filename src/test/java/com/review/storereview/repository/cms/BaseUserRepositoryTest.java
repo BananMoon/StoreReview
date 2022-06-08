@@ -5,7 +5,6 @@ import com.review.storereview.common.enumerate.Gender;
 import com.review.storereview.dao.cms.User;
 import com.review.storereview.dto.ResponseJsonObject;
 import com.review.storereview.dto.request.UserSigninRequestDto;
-import com.review.storereview.repository.cms.BaseUserRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
