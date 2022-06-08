@@ -5,30 +5,24 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.review.storereview.common.enumerate.ApiStatusCode;
 import com.review.storereview.common.exception.ReviewServiceException;
-import com.review.storereview.dao.JWTUserDetails;
+import com.review.storereview.dao.CustomUserDetails;
 import com.review.storereview.dao.cms.ApiLog;
 import com.review.storereview.dto.ResponseJsonObject;
 import com.review.storereview.service.cms.LogService;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
-
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 /** Class       : RqeustAroundLogAop (AOP)
@@ -70,17 +64,16 @@ public class RequestAroundLogAop {
         for (int i=0; i<arguments.length; i++) {
             if (arguments[i] instanceof List) {
                 List<?> listInArgument = (List<?>) arguments[i];
-                for (int j = 0; j < listInArgument.size(); j++) {
+                for (Object o : listInArgument) {
                     if (listInArgument.get(i) instanceof MultipartFile)
-                        inputParam.append(", \"fileName\":").append(((MultipartFile) listInArgument.get(j)).getOriginalFilename());
+                        inputParam.append(", \"fileName\":").append(((MultipartFile) o).getOriginalFilename());
                 }
             } else {
                 inputParam.append(om.writeValueAsString(arguments[i]));
             }
         }
 
-        HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
-
+//        HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
         String  outputMessage = "" ;
         char apiStatus = 'Y';
         String methodName = "";
@@ -89,18 +82,18 @@ public class RequestAroundLogAop {
         LocalDateTime date = LocalDateTime.now();
         String suid = "";
         String said = "";
-        long elapsedTime = 0L;
+        long elapsedTime;
         StringBuilder apiResultDescription = new StringBuilder();
         // joinPoint 리턴 객체 담을 변수
-        Object retValue = null;
+        Object retValue;
         StopWatch stopWatch = new StopWatch();
 
         try {
             // API 요청 사용자 정보 가져오기.
             Authentication authenticationToken = SecurityContextHolder.getContext().getAuthentication();
-            if(authenticationToken.getPrincipal().equals("anonymousUser") == false){
+            if(!authenticationToken.getPrincipal().equals("anonymousUser")){
                 //인증 객체에 저장되어있는 유저정보 가져오기.
-                JWTUserDetails userDetails = (JWTUserDetails) authenticationToken.getPrincipal();
+                CustomUserDetails userDetails = (CustomUserDetails) authenticationToken.getPrincipal();
                 suid = userDetails.getSuid();
                 said = userDetails.getSaid();
             }
@@ -140,9 +133,9 @@ public class RequestAroundLogAop {
                     .append(outputMessage).append(System.lineSeparator());
 
             elapsedTime = stopWatch.getTotalTimeMillis();
-            String apiDesc = "";
+            String apiDesc;
             if(apiResultDescription.length() > 8000)
-                apiDesc = apiResultDescription.toString().substring(0,8000);
+                apiDesc = apiResultDescription.substring(0,8000);
             else
                 apiDesc = apiResultDescription.toString();
 
