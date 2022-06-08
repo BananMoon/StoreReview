@@ -30,9 +30,8 @@ public class ReviewServiceImpl {
     public List<Review> listAllReviews(String placeId) {
         // TODO 해당하는 placeId가 없을 경우 throw Error 해야하나?
         // 리뷰 데이터를 리스트화 & null 이라면 빈 컬렉션 반환
-        List<Review> findReviews = Optional.ofNullable(baseReviewRepository.findAllByPlaceIdAndIsDeleteIsOrderByCreatedAtDesc(placeId, 0))
-                .orElse(Collections.emptyList());
 
+        List<Review> findReviews = baseReviewRepository.findAllByPlaceIdAndIsDeleteIsOrderByCreatedAtDesc(placeId, 0);
         return findReviews;
     }
 

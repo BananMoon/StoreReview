@@ -2,9 +2,10 @@ package com.review.storereview.controller.cms;
 
 import com.review.storereview.common.enumerate.ApiStatusCode;
 import com.review.storereview.common.exception.ContentNotFoundException;
+import com.review.storereview.common.jwt.SecurityUtil;
 import com.review.storereview.common.utils.CryptUtils;
 import com.review.storereview.common.utils.StringUtil;
-import com.review.storereview.dao.JWTUserDetails;
+import com.review.storereview.dao.CustomUserDetails;
 import com.review.storereview.dao.cms.Comment;
 import com.review.storereview.dao.cms.User;
 import com.review.storereview.dto.ResponseJsonObject;
@@ -14,16 +15,13 @@ import com.review.storereview.dto.response.CommentDeleteResponseDto;
 import com.review.storereview.dto.response.CommentListResponseDto;
 import com.review.storereview.dto.response.CommentResponseDto;
 import com.review.storereview.service.cms.CommentService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 
@@ -32,25 +30,25 @@ import java.time.LocalDateTime;
  * Author      : 조 준 희
  * Description : Class Description
  * History     : [2022-01-24] - 조 준희 - Class Create
+ *               [2022-06-06] - 문 윤지 - Refactor : SecurityUtil 클래스의 getUserDetailsFromSecurityContextHolder 메서드 추출
  */
-
+@Slf4j
 @RestController
 public class CommentApiController {
-    private final Logger logger = LoggerFactory.getLogger(CommentApiController.class);
-
     private final CommentService commentService;
     private final CryptUtils cryptUtils;
+    private final SecurityUtil securityUtil;
 
     @Autowired
-    public CommentApiController(CommentService commentService, CryptUtils cryptUtils) {
+    public CommentApiController(CommentService commentService, CryptUtils cryptUtils, SecurityUtil securityUtil) {
         this.commentService = commentService;
         this.cryptUtils = cryptUtils;
+        this.securityUtil = securityUtil;
     }
 
     /** 특정 리뷰아이디에 달린 코멘트 리스트 조회
      * @param reviewId 리뷰 아이디
      * @param pageNo 페이지 번호
-     * @return
      * @throws ContentNotFoundException
      */
 
@@ -93,7 +91,7 @@ public class CommentApiController {
             return new ResponseEntity<>(resDto, HttpStatus.OK);
         }catch(Exception ex)
         {
-            logger.error("comment all select exception : " + ex.getMessage());
+            log.error("comment all select exception : " + ex.getMessage());
             ResponseJsonObject resDto = ResponseJsonObject.withError(ApiStatusCode.SYSTEM_ERROR.getCode(),ApiStatusCode.SYSTEM_ERROR.getType(),ApiStatusCode.SYSTEM_ERROR.getMessage());
             return new ResponseEntity<ResponseJsonObject>(resDto,HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -112,10 +110,8 @@ public class CommentApiController {
             // 코멘트 내용 디코딩 처리.
             String decodingContent = CryptUtils.Base64Decoding(requestDto.getContent());
 
-            //인증된 사용자의 인증객체 가져오기
-            Authentication authenticationToken = SecurityContextHolder.getContext().getAuthentication();
-            //인증 객체에 저장되어있는 유저정보 가져오기.
-            JWTUserDetails userDetails = (JWTUserDetails) authenticationToken.getPrincipal();
+            //인증된 사용자의 인증객체로 저장되어있는 유저정보 가져오기
+            CustomUserDetails userDetails = securityUtil.getUserDetailsFromSecurityContextHolder();
 
             //저장하고자 하는 코멘트 객체 생성.
             Comment comment = Comment.builder().reviewId(requestDto.getReviewId())
@@ -148,7 +144,7 @@ public class CommentApiController {
         }
         catch(Exception ex)
         {
-            logger.error("comment save exception : " + ex.getMessage());
+            log.error("comment save exception : " + ex.getMessage());
             ResponseJsonObject resDto = ResponseJsonObject.withError(ApiStatusCode.SYSTEM_ERROR.getCode(),ApiStatusCode.SYSTEM_ERROR.getType(),ApiStatusCode.SYSTEM_ERROR.getMessage() );
             return new ResponseEntity<ResponseJsonObject>(resDto,HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -156,7 +152,6 @@ public class CommentApiController {
 
     /**
      *  코멘트 수정 API
-     *
      * @param requestDto
      * @return 작성된 코멘트 정보 리턴.
      */
@@ -167,19 +162,21 @@ public class CommentApiController {
             // content Base64 디코딩 작업
             String decodingContent = CryptUtils.Base64Decoding(requestDto.getContent());
 
-            // Request 사용자 인증 객체 가져오기
+            //인증된 사용자의 인증객체로 저장되어있는 유저정보 가져오기
+            CustomUserDetails userDetails = securityUtil.getUserDetailsFromSecurityContextHolder();
+           /* // Request 사용자 인증 객체 가져오기
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
             // 사용자 인증 객체에서 사용자 정보 가져오기
-            JWTUserDetails userDetails = (JWTUserDetails) authentication.getPrincipal();
+            CustomUserDetailsForJWT userDetails = (CustomUserDetailsForJWT) authentication.getPrincipal();*/
 
             // 코멘트 수정 서비스
             Comment savedComment = commentService.findByCommentId(requestDto.getCommentId());
 
             // 자신의 코멘트가 아닌 경우 권한 없음.
-            if( savedComment.getUser().getSuid().equals(userDetails.getSuid()) == false)
+            if(!savedComment.getUser().getSuid().equals(userDetails.getSuid()))
             {
-                logger.info("Failed. Comment Update UnAuthorization!!");
+                log.info("Failed. Comment Update UnAuthorization!!");
                 return new ResponseEntity<>(ResponseJsonObject.withStatusCode(ApiStatusCode.FORBIDDEN.getCode()), HttpStatus.FORBIDDEN);
             }
 
@@ -206,14 +203,14 @@ public class CommentApiController {
 
             // ResponseDto 작성
             ResponseJsonObject resDto = ResponseJsonObject.withStatusCode(ApiStatusCode.OK.getCode()).setData(commentResponseDto);
-            return new ResponseEntity<ResponseJsonObject>(resDto,HttpStatus.OK);
+            return new ResponseEntity<>(resDto,HttpStatus.OK);
 
         }
         catch(Exception ex)
         {
-            logger.error("comment update exception : " + ex.getMessage());
+            log.error("comment update exception : " + ex.getMessage());
             ResponseJsonObject resDto = ResponseJsonObject.withError(ApiStatusCode.SYSTEM_ERROR.getCode(),ApiStatusCode.SYSTEM_ERROR.getType(),ApiStatusCode.SYSTEM_ERROR.getMessage());
-            return new ResponseEntity<ResponseJsonObject>(resDto,HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(resDto, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -227,11 +224,12 @@ public class CommentApiController {
     public ResponseEntity<ResponseJsonObject> deleteComment(@PathVariable("commentId") Long commentId)
     {
         try {
-            // 서비스 요청 사용자 인증 객체 가져오기
+            CustomUserDetails userDetails = securityUtil.getUserDetailsFromSecurityContextHolder();
+            /*// 서비스 요청 사용자 인증 객체 가져오기
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
             // 사용자 정보 가져오기.
-            JWTUserDetails userDetails = (JWTUserDetails) authentication.getPrincipal();
+            CustomUserDetailsForJWT userDetails = (CustomUserDetailsForJWT) authentication.getPrincipal();*/
 
             // 코멘트 작성자 유효성 체크
             Comment comment = commentService.findByCommentId(commentId);
@@ -249,18 +247,17 @@ public class CommentApiController {
 
                 // ResponseDto 작성
                 ResponseJsonObject resDto = ResponseJsonObject.withStatusCode(ApiStatusCode.OK.getCode()).setData(responseDto);
-                return new ResponseEntity<ResponseJsonObject>(resDto, HttpStatus.OK);
+                return new ResponseEntity<>(resDto, HttpStatus.OK);
             } else {
-                logger.error("Failed. Comment Delete UnAuthorization!!");
+                log.error("Failed. Comment Delete UnAuthorization!!");
                 return new ResponseEntity<>(ResponseJsonObject.withStatusCode(ApiStatusCode.FORBIDDEN.getCode()), HttpStatus.FORBIDDEN);
             }
         }catch(Exception ex)
         {
-            logger.error("comment delete exception : " + ex.getMessage());
+            log.error("comment delete exception : " + ex.getMessage());
             ResponseJsonObject resDto = ResponseJsonObject.withError(ApiStatusCode.SYSTEM_ERROR.getCode(),ApiStatusCode.SYSTEM_ERROR.getType(),ApiStatusCode.SYSTEM_ERROR.getMessage());
-            return new ResponseEntity<ResponseJsonObject>(resDto,HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(resDto, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
-
 }

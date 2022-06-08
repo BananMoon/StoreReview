@@ -5,7 +5,6 @@ import com.review.storereview.common.enumerate.Gender;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotEmpty;
@@ -13,6 +12,9 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
 
+/**
+ * 회원가입 요청 Dto
+ */
 @Getter
 @NoArgsConstructor
 public class UserSaveRequestDto{
