@@ -161,9 +161,9 @@ public class JwtTokenProvider implements AuthenticationProvider {
 
 
     /**
-     * 토큰으로 Authentication 객체 생성
+     * 유효한 토큰으로 Authentication 객체 생성
      * @param token
-     * @return
+     * @return Authentication 객체
      */
     public Authentication getAuthentication(String token) throws BadCredentialsException {
         Claims claims = Jwts
@@ -195,9 +195,10 @@ public class JwtTokenProvider implements AuthenticationProvider {
     }
 
     /**
-     * Token 벨리테이션
+     * Token 유효성 검사
      * @param token
-     * @return
+     * @return true if token is validate
+     *         false if token is not validate. (wrong jwt signkey, expired jwt token, unsupported jwt, illegal jwt token)
      */
     public boolean validateToken(String token) {
         try {

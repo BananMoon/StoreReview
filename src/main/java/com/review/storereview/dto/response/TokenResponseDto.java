@@ -1,4 +1,4 @@
-package com.review.storereview.dto.request;
+package com.review.storereview.dto.response;
 
 import lombok.*;
 
