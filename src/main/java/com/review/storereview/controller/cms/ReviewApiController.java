@@ -2,13 +2,13 @@ package com.review.storereview.controller.cms;
 
 import com.amazonaws.util.CollectionUtils;
 import com.review.storereview.common.enumerate.ApiStatusCode;
-import com.review.storereview.common.exception.CustomAuthorizationException;
+import com.review.storereview.common.exception.ContentNotFoundException;
 import com.review.storereview.common.exception.ParamValidationException;
 import com.review.storereview.common.exception.PersonIdNotFoundException;
-import com.review.storereview.common.exception.ContentNotFoundException;
+import com.review.storereview.common.jwt.SecurityUtil;
 import com.review.storereview.common.utils.CryptUtils;
 import com.review.storereview.common.utils.StringUtil;
-import com.review.storereview.dao.JWTUserDetails;
+import com.review.storereview.dao.CustomUserDetails;
 import com.review.storereview.dao.cms.Review;
 import com.review.storereview.dao.cms.User;
 import com.review.storereview.dto.ResponseJsonObject;
@@ -21,13 +21,12 @@ import com.review.storereview.service.S3Service;
 import com.review.storereview.service.cms.CommentService;
 import com.review.storereview.service.cms.ReviewServiceImpl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,22 +37,22 @@ import java.util.*;
  * Author      : 문 윤 지
  * History     : [2022-01-23]
  */
-
+@Slf4j
 @RestController
 public class ReviewApiController {
-    private final Logger logger = LoggerFactory.getLogger(ReviewApiController.class);
-
     private final ReviewServiceImpl reviewService;
     private final CommentService commentService;
     private final CryptUtils cryptUtils;
     private final S3Service s3Service;
+    private final SecurityUtil securityUtil;
 
     @Autowired
-    public ReviewApiController(ReviewServiceImpl reviewService, CommentService commentService, CryptUtils cryptUtils, S3Service s3Service) {
+    public ReviewApiController(ReviewServiceImpl reviewService, CommentService commentService, CryptUtils cryptUtils, S3Service s3Service, SecurityUtil securityUtil) {
         this.reviewService = reviewService;
         this.commentService = commentService;
         this.cryptUtils = cryptUtils;
         this.s3Service = s3Service;
+        this.securityUtil = securityUtil;
     }
 
     /**
@@ -61,10 +60,12 @@ public class ReviewApiController {
      * @param placeId
      */
     @GetMapping("/places/{placeId}")
-    public ResponseEntity<ResponseJsonObject> findAllReviews(@PathVariable String placeId) {
+    public ResponseEntity<ResponseJsonObject> findAllReviews(@PathVariable String placeId) throws ContentNotFoundException{
         // 1. findAll 서비스 로직
         List<Review> findReviews = reviewService.listAllReviews(placeId);// 해당하는 장소 관련 리뷰들 모두 조회하여 리스트
-
+        if (findReviews == null) {
+            throw new ContentNotFoundException();
+        }
         // 2.1. placeAvgStars 계산
         Double placeAvgStars = reviewService.AveragePlaceStars(findReviews);
 
@@ -100,7 +101,7 @@ public class ReviewApiController {
                         )
                 );
             } catch (Exception ex) {
-                logger.error("ReviewApiController.findAllReviews Method/ Said Encoding Exception : " + ex.getMessage());
+                log.error("ReviewApiController.findAllReviews Method/ Said Encoding Exception : " + ex.getMessage());
                 ResponseJsonObject resDto = ResponseJsonObject.withError(ApiStatusCode.SYSTEM_ERROR.getCode(), ApiStatusCode.SYSTEM_ERROR.getType(), ApiStatusCode.SYSTEM_ERROR.getMessage());
                 return new ResponseEntity<>(resDto, HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -114,13 +115,12 @@ public class ReviewApiController {
      * @param reviewId
      */
     @GetMapping("/reviews/{reviewId}")
-    public ResponseEntity<ResponseJsonObject> findOneReview(@PathVariable Long reviewId) {
+    public ResponseEntity<ResponseJsonObject> findOneReview(@PathVariable Long reviewId) throws ContentNotFoundException {
         // 1. 조회 서비스 로직 (리뷰 조회 - userId 조회)
         Review findReview = reviewService.listReview(reviewId);
+
         if (findReview == null) {
             throw new ContentNotFoundException();
-//            return new ResponseEntity<>(new PersonIdNotFoundException().getResponseJsonObject(),
-//                    HttpStatus.BAD_REQUEST);
         }
         // 2. content, ImgUrl 인코딩
         String encodedContent = CryptUtils.Base64Encoding(findReview.getContent());
@@ -146,7 +146,7 @@ public class ReviewApiController {
                     StringUtil.DateTimeToString(findReview.getUpdatedAt()),
                     findReview.getIsDelete(), commentNum);
         } catch (Exception ex) {
-            logger.error("ReviewApiController.findOneReview Method/ Said Encoding Exception : " + ex.getMessage());
+            log.error("ReviewApiController.findOneReview Method/ Said Encoding Exception : " + ex.getMessage());
             ResponseJsonObject resDto = ResponseJsonObject.withError(ApiStatusCode.SYSTEM_ERROR.getCode(), ApiStatusCode.SYSTEM_ERROR.getType(), ApiStatusCode.SYSTEM_ERROR.getMessage());
             return new ResponseEntity<>(resDto, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -169,11 +169,9 @@ public class ReviewApiController {
             ResponseJsonObject exceptionDto = new ParamValidationException(errorsMap).getResponseJsonObject();
             return new ResponseEntity<>(exceptionDto, HttpStatus.BAD_REQUEST);
         }
-        // 1. 인증된 사용자 토큰 값
-        // 1-1. 인증된 사용자의 인증 객체 가져오기
-        Authentication authenticationToken = SecurityContextHolder.getContext().getAuthentication();
-        // 1-2. 인증 객체의 유저정보 가져오기
-        JWTUserDetails userDetails = (JWTUserDetails) authenticationToken.getPrincipal();
+        // 1. 인증된 사용자 토큰 값 : 인증된 사용자의 인증 객체로 유저 정보 가져오기
+        CustomUserDetails userDetails = securityUtil.getUserDetailsFromSecurityContextHolder();
+
         // 2. 인코딩된 content 디코딩
         String decodedContent = CryptUtils.Base64Decoding(requestDto.getContent());
 
@@ -183,7 +181,7 @@ public class ReviewApiController {
                 .content(decodedContent)
                 .stars(requestDto.getStars())
                 .user(User.builder()
-                        .userId(authenticationToken.getName())  // Name == userId(이메일)
+                        .userId(userDetails.getUsername())  // Name == userId(이메일)
                         .suid(userDetails.getSuid())
                         .said(userDetails.getSaid())
                         .build())
@@ -221,7 +219,7 @@ public class ReviewApiController {
                     StringUtil.DateTimeToString(savedReview.getUpdatedAt()),
                     savedReview.getIsDelete());
         } catch (Exception ex) {
-            logger.error("ReviewApiController.uploadReview Method/ Said Encoding Exception : " + ex.getMessage());
+            log.error("ReviewApiController.uploadReview Method/ Said Encoding Exception : " + ex.getMessage());
             ResponseJsonObject resDto = ResponseJsonObject.withError(ApiStatusCode.SYSTEM_ERROR.getCode(), ApiStatusCode.SYSTEM_ERROR.getType(), ApiStatusCode.SYSTEM_ERROR.getMessage());
             return new ResponseEntity<>(resDto, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -261,19 +259,19 @@ public class ReviewApiController {
     @RequestMapping(value="/reviews/{reviewId}", method = RequestMethod.PUT)
     public ResponseEntity<ResponseJsonObject> updateReview(@PathVariable Long reviewId,
                                                            @RequestPart(value = "imgFileList", required = false) List<MultipartFile> imgFiles,
-                                                           @RequestParam(value = "key") ReviewUpdateRequestDto requestDto) {
-        // 1. 인증된 사용자 토큰 값
-        // 1-1. 인증된 사용자의 인증 객체 가져오기
-        Authentication authenticationToken = SecurityContextHolder.getContext().getAuthentication();
-        // 1-2. 인증 객체의 유저정보 가져오기
-        JWTUserDetails userDetails = (JWTUserDetails) authenticationToken.getPrincipal();
+                                                           @RequestParam(value = "key") ReviewUpdateRequestDto requestDto) throws ContentNotFoundException{
+
+        // 1. 인증된 사용자 토큰 값 : 인증된 사용자의 인증 객체로 유저 정보 가져오기
+        CustomUserDetails userDetails = securityUtil.getUserDetailsFromSecurityContextHolder();
+
         // 2. 유효성 검증
         Review findReview = reviewService.listReview(reviewId);
         if (findReview == null) {
-            return new ResponseEntity<>(new PersonIdNotFoundException().getResponseJsonObject(),
-                    HttpStatus.BAD_REQUEST);
+            throw new ContentNotFoundException();
+//            return new ResponseEntity<>(new ContentNotFoundException().getResponseJsonObject(),
+//                    HttpStatus.BAD_REQUEST);
         }
-        if (!isWriterCheck(findReview.getUser().getSuid(),userDetails.getSuid()))
+        if (!writerAuthorityCheck(findReview.getUser().getSuid(),userDetails.getSuid()))
             return new ResponseEntity<>(ResponseJsonObject.withError(ApiStatusCode.FORBIDDEN.getCode(), ApiStatusCode.FORBIDDEN.getType(), ApiStatusCode.FORBIDDEN.getMessage()), HttpStatus.FORBIDDEN);
 
         // 3. 리뷰 생성
@@ -295,7 +293,6 @@ public class ReviewApiController {
         Review updatedReview = reviewService.updateReview(findReview, renewReview);
         // 6. content 인코딩
         String encodedContent = CryptUtils.Base64Encoding(updatedReview.getContent());
-        System.out.println(encodedContent);
         // 7. responseDto 생성
         ReviewResponseDto reviewResponseDto;
         ResponseJsonObject resDto;
@@ -308,7 +305,7 @@ public class ReviewApiController {
                     StringUtil.DateTimeToString(updatedReview.getUpdatedAt()),
                     updatedReview.getIsDelete());
         } catch(Exception ex) {
-            logger.error("ReviewApiController.updateReview Method/ Said Encoding2 Exception : " + ex.getMessage());
+            log.error("ReviewApiController.updateReview Method/ Said Encoding2 Exception : " + ex.getMessage());
             resDto = ResponseJsonObject.withError(ApiStatusCode.SYSTEM_ERROR.getCode(),ApiStatusCode.SYSTEM_ERROR.getType(),ApiStatusCode.SYSTEM_ERROR.getMessage());
             return new ResponseEntity<>(resDto,HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -321,26 +318,20 @@ public class ReviewApiController {
      * @param reviewId
      */
     @DeleteMapping("/reviews/{reviewId}")
-    public ResponseEntity<ResponseJsonObject> deleteReview(@PathVariable Long reviewId) {
-        // 1. 인증된 사용자 토큰 값
-        // 1-1. 인증된 사용자의 인증 객체 가져오기
-        Authentication authenticationToken = SecurityContextHolder.getContext().getAuthentication();
-        if (authenticationToken == null) {
-            throw new CustomAuthorizationException();
-        }
-        // 1-2. 인증 객체의 유저정보 가져오기
-        JWTUserDetails userDetails = (JWTUserDetails) authenticationToken.getPrincipal();
+    public ResponseEntity<ResponseJsonObject> deleteReview(@PathVariable Long reviewId) throws ContentNotFoundException{
+        // 1. 인증된 사용자 토큰 값 :
+        CustomUserDetails userDetails = securityUtil.getUserDetailsFromSecurityContextHolder();
 
-        // 2. 유효성 검증
+        // 2. 유효성 검증 : 권한 없다는 status code 로 응답
         Review findReview = reviewService.listReview(reviewId);
         if (findReview == null) {
             throw new ContentNotFoundException();
-//            return new ResponseEntity<>(new PersonIdNotFoundException().getResponseJsonObject(),
-//                    HttpStatus.BAD_REQUEST);
         }
-        if (!isWriterCheck(findReview.getUser().getSuid(), userDetails.getSuid()))
+        // 2-1.SUID 유효성 체크.
+        if (!writerAuthorityCheck(findReview.getUser().getSuid(), userDetails.getSuid())) {
+            log.error("Failed. Review Delete UnAuthorization!!");
             return new ResponseEntity<>(ResponseJsonObject.withError(ApiStatusCode.FORBIDDEN.getCode(), ApiStatusCode.FORBIDDEN.getType(), ApiStatusCode.FORBIDDEN.getMessage()), HttpStatus.FORBIDDEN);
-
+        }
         // 3. db - 리뷰 삭제 서비스 호출
         reviewService.deleteReview(reviewId);
         // 4. s3 - 이미지파일 제거 서비스 호출
@@ -351,7 +342,7 @@ public class ReviewApiController {
     }
 
     /** 작성자의 suid와 사용자의 suid를 비교하여 검증한다. */
-    private boolean isWriterCheck(String writerSuid, String userSuid) {
+    private boolean writerAuthorityCheck(String writerSuid, String userSuid) {
         if (writerSuid.equals(userSuid))
             return true;
         return false;

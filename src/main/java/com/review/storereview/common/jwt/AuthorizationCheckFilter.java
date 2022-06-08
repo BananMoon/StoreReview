@@ -1,6 +1,5 @@
-package com.review.storereview.filter;
+package com.review.storereview.common.jwt;
 
-import com.review.storereview.common.jwt.JwtTokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -59,7 +58,7 @@ public class AuthorizationCheckFilter extends OncePerRequestFilter {
         // token이 유효한지 확인
         if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
             Authentication authentication = tokenProvider.getAuthentication(token); // 해당 토큰에 해당하는 Authentication 객체 얻기(UserDetails 통해서)
-            SecurityContextHolder.getContext().setAuthentication(authentication);       // token에 authentication 정보 삽입
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             logger.debug("Security Context에 '{}' 인증 정보를 저장했습니다, uri: {}", authentication.getName(), requestURI);
         } else {
             logger.debug("유효한 JWT 토큰이 없습니다, uri: {}", requestURI);
