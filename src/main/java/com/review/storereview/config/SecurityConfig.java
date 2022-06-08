@@ -1,16 +1,15 @@
 package com.review.storereview.config;
 
-import com.review.storereview.common.JwtTokenProvider;
+//import com.review.storereview.common.jwt.JwtAuthenticationFilter;
+import com.review.storereview.common.jwt.JwtTokenProvider;
 import com.review.storereview.common.enumerate.Authority;
 import com.review.storereview.common.exception.handler.AuthenticationExceptionHandler;
 import com.review.storereview.common.exception.handler.AuthorizationExceptionHandler;
-import com.review.storereview.filter.AuthorizationCheckFilter;
+import com.review.storereview.common.jwt.AuthorizationCheckFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,7 +20,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
-import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
@@ -31,7 +29,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * History     : [2022-01-10] - 조 준희 - Class Create
  */
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity  // Spring Security 사용
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     // 3. provider
@@ -66,7 +64,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                // token을 사용하는 방식이기 때문에 csrf를 disable합니다.
+                // csrf보안 disable
                 .csrf().disable()
                 .formLogin() .disable()
                 //  예외 처리 지정
@@ -80,7 +78,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .frameOptions()
                 .sameOrigin()       // 동일 도메인에서는 iframe 접근 가능
 
-                // 세션을 사용하지 않기 때문에 STATELESS로 설정
+                // jwt사용, 세션 사용X => STATELESS로 설정
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -91,19 +89,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                  */
                 .and()
                 .authorizeRequests()
-                    .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                    .requestMatchers(CorsUtils::isPreFlightRequest).permitAll() // Preflight Request 요청 모두 허용
                     .antMatchers(HttpMethod.GET,"/comment/**").permitAll()
                     .antMatchers(HttpMethod.POST,"/comment").hasRole(Authority.USER.getName())
                     .antMatchers(HttpMethod.PUT,"/comment").hasRole(Authority.USER.getName())
                     .antMatchers(HttpMethod.DELETE,"/comment").hasRole(Authority.USER.getName())
                     .antMatchers(HttpMethod.GET, "/reviews/**","/places/**" ).permitAll()
-                    .antMatchers("/authenticate", "/api/signup", "/test/ping").permitAll()    // 인증 절차 없이 접근 허용(로그인 관련 url)
+                    .antMatchers("/login", "/signup", "/test/ping").permitAll()    // 인증 절차 없이 접근 허용(로그인 관련 url)
+//                    .antMatchers("/authenticate", "/signup", "/test/ping").permitAll()    // 인증 절차 없이 접근 허용(로그인 관련 url)
                     .antMatchers("/review", "/test/tester").hasRole(Authority.USER.getName())
                     .antMatchers("/test/admin").hasRole(Authority.ADMIN.getName())
                     .anyRequest().authenticated()       // 그 외 나머지 리소스들은 무조건 인증을 완료해야 접근 가능
                 .and()
                 //AuthenticationFilterChain- UsernamePasswordAuthenticationFilter 전에 실행될 커스텀 필터 등록
                 .addFilterBefore(new AuthorizationCheckFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+//                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
                 //.apply(new JwtSecurityConfig(jwtTokenProvider));
     }
 
