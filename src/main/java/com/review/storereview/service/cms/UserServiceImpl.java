@@ -1,7 +1,6 @@
 package com.review.storereview.service.cms;
 
 import com.review.storereview.common.exception.PersonAlreadyExistsException;
-import com.review.storereview.dto.ResponseJsonObject;
 import com.review.storereview.dao.cms.User;
 import com.review.storereview.repository.cms.BaseUserRepository;
 import com.review.storereview.dto.request.UserSaveRequestDto;
@@ -9,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 /**
  * Class       : UserServiceImpl
  * Author      : 문 윤 지
@@ -27,22 +25,16 @@ public class UserServiceImpl implements BaseUserService {
 
     private final BaseUserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;     // 암호화
+
     /**
      * 회원 가입 서비스
      * @param userSaveRequestDto
      * @return User
      */
     @Override
-    public void join(UserSaveRequestDto userSaveRequestDto)  {
+    public void join(UserSaveRequestDto userSaveRequestDto) {
         // 1. 중복 회원 검증 (id)
         checkUserIdDuplicate(userSaveRequestDto.getUserId());
-/*
-        try {
-
-        } catch (PersonAlreadyExistsException pae) {
-            throw new PersonAlreadyExistsException();
-        }
-*/
 
         // 2. SUID (CHAR + 10자리 숫자-1씩 증가) 생성
         String suid = SUID_CHAR + String.format("%010d", ++SUID_NUM);
@@ -61,7 +53,7 @@ public class UserServiceImpl implements BaseUserService {
 
     // 중복 회원 검증
     @Override
-    public void checkUserIdDuplicate(String userId)  {
+    public void checkUserIdDuplicate(String userId) {
         boolean isExist = userRepository.existsByUserId(userId);
         if (isExist)
             throw new PersonAlreadyExistsException();

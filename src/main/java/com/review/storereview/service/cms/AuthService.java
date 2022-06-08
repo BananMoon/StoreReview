@@ -1,10 +1,10 @@
 package com.review.storereview.service.cms;
 
 import com.review.storereview.common.enumerate.Authority;
-import com.review.storereview.dao.JWTUserDetails;
+import com.review.storereview.dao.CustomUserDetails;
 import com.review.storereview.dao.cms.User;
 import com.review.storereview.repository.cms.BaseUserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,15 +23,10 @@ import java.util.Optional;
  * Description : 사용자 인증/인가 서비스
  * History     : [2022-01-10] - 조 준희 - Class Create
  */
-
+@RequiredArgsConstructor
 @Component
 public class AuthService implements UserDetailsService {
     private final BaseUserRepository userRepository;
-
-    @Autowired
-    public AuthService(BaseUserRepository UserRepository) {
-        this.userRepository = UserRepository;
-    }
 
     /**
      * AuthenticationProvider가 호출하는 loadUserByUsername 오버라이딩 함수.
@@ -53,7 +48,7 @@ public class AuthService implements UserDetailsService {
      * @param user
      * @return
      */
-    private JWTUserDetails createUser(String username, User user) {
+    private CustomUserDetails createUser(String username, User user) {
 //        if (!user.isActivated()) {
 //            throw new RuntimeException(username + " -> 활성화되어 있지 않습니다.");
 //        }
@@ -63,7 +58,7 @@ public class AuthService implements UserDetailsService {
         // 데이터베이스 권한을 가져와서 할당해주어야함.
         grantedAuthorities.add(new SimpleGrantedAuthority(Authority.USER.getFullName()));
 
-        return new JWTUserDetails(user.getUserId(),
+        return new CustomUserDetails(user.getUserId(),
                 user.getPassword(),
                 grantedAuthorities,
                 user.getSuid(),

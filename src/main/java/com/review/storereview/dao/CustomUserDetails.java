@@ -61,8 +61,9 @@ import org.springframework.util.Assert;
  *
  * @author Ben Alex
  * @author Luke Taylor
+ * 추 가 : org.springframework.security.core.userdetails.User 클래스의 변형 클래스
  */
-public class JWTUserDetails implements UserDetails, CredentialsContainer {
+public class CustomUserDetails implements UserDetails, CredentialsContainer {
 
     private static final long serialVersionUID = SpringSecurityCoreVersion.SERIAL_VERSION_UID;
 
@@ -86,11 +87,11 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
     /**
      * Calls the more complex constructor with all boolean arguments set to {@code true}.
      */
-    public JWTUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
+    public CustomUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         this(username, password, true, true, true, true, authorities);
     }
 
-    public JWTUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities, String suid, String said) {
+    public CustomUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities, String suid, String said) {
         this(username, password, true, true, true, true, authorities,suid,said);
     }
     /**
@@ -110,9 +111,9 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
      * @throws IllegalArgumentException if a <code>null</code> value was passed either as
      * a parameter or as an element in the <code>GrantedAuthority</code> collection
      */
-    public JWTUserDetails(String username, String password, boolean enabled, boolean accountNonExpired,
-                boolean credentialsNonExpired, boolean accountNonLocked,
-                Collection<? extends GrantedAuthority> authorities) {
+    public CustomUserDetails(String username, String password, boolean enabled, boolean accountNonExpired,
+                             boolean credentialsNonExpired, boolean accountNonLocked,
+                             Collection<? extends GrantedAuthority> authorities) {
         Assert.isTrue(username != null && !"".equals(username) && password != null,
                 "Cannot pass null or empty values to constructor");
         this.username = username;
@@ -124,9 +125,9 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
         this.authorities = Collections.unmodifiableSet(sortAuthorities(authorities));
     }
 
-    public JWTUserDetails(String username, String password, boolean enabled, boolean accountNonExpired,
-                          boolean credentialsNonExpired, boolean accountNonLocked,
-                          Collection<? extends GrantedAuthority> authorities, String suid, String said) {
+    public CustomUserDetails(String username, String password, boolean enabled, boolean accountNonExpired,
+                             boolean credentialsNonExpired, boolean accountNonLocked,
+                             Collection<? extends GrantedAuthority> authorities, String suid, String said) {
         Assert.isTrue(username != null && !"".equals(username) && password != null,
                 "Cannot pass null or empty values to constructor");
         this.username = username;
@@ -183,7 +184,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
         Assert.notNull(authorities, "Cannot pass a null GrantedAuthority collection");
         // Ensure array iteration order is predictable (as per
         // UserDetails.getAuthorities() contract and SEC-717)
-        SortedSet<GrantedAuthority> sortedAuthorities = new TreeSet<>(new JWTUserDetails.AuthorityComparator());
+        SortedSet<GrantedAuthority> sortedAuthorities = new TreeSet<>(new CustomUserDetails.AuthorityComparator());
         for (GrantedAuthority grantedAuthority : authorities) {
             Assert.notNull(grantedAuthority, "GrantedAuthority list cannot contain any null elements");
             sortedAuthorities.add(grantedAuthority);
@@ -201,7 +202,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof org.springframework.security.core.userdetails.User) {
-            return this.username.equals(((JWTUserDetails) obj).username);
+            return this.username.equals(((CustomUserDetails) obj).username);
         }
         return false;
     }
@@ -233,7 +234,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
      * @param username the username to use
      * @return the UserBuilder
      */
-    public static JWTUserDetails.UserBuilder withUsername(String username) {
+    public static CustomUserDetails.UserBuilder withUsername(String username) {
         return builder().username(username);
     }
 
@@ -241,8 +242,8 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
      * Creates a UserBuilder
      * @return the UserBuilder
      */
-    public static JWTUserDetails.UserBuilder builder() {
-        return new JWTUserDetails.UserBuilder();
+    public static CustomUserDetails.UserBuilder builder() {
+        return new CustomUserDetails.UserBuilder();
     }
 
     /**
@@ -301,14 +302,14 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
      * is considered insecure for production purposes.
      */
     @Deprecated
-    public static JWTUserDetails.UserBuilder withDefaultPasswordEncoder() {
+    public static CustomUserDetails.UserBuilder withDefaultPasswordEncoder() {
         logger.warn("User.withDefaultPasswordEncoder() is considered unsafe for production "
                 + "and is only intended for sample applications.");
         PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         return builder().passwordEncoder(encoder::encode);
     }
 
-    public static JWTUserDetails.UserBuilder withUserDetails(UserDetails userDetails) {
+    public static CustomUserDetails.UserBuilder withUserDetails(UserDetails userDetails) {
         // @formatter:off
         return withUsername(userDetails.getUsername())
                 .password(userDetails.getPassword())
@@ -386,7 +387,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * @return the {@link org.springframework.security.core.userdetails.User.UserBuilder} for method chaining (i.e. to populate
          * additional attributes for this user)
          */
-        public JWTUserDetails.UserBuilder username(String username) {
+        public CustomUserDetails.UserBuilder username(String username) {
             Assert.notNull(username, "username cannot be null");
             this.username = username;
             return this;
@@ -398,7 +399,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * @return the {@link org.springframework.security.core.userdetails.User.UserBuilder} for method chaining (i.e. to populate
          * additional attributes for this user)
          */
-        public JWTUserDetails.UserBuilder password(String password) {
+        public CustomUserDetails.UserBuilder password(String password) {
             Assert.notNull(password, "password cannot be null");
             this.password = password;
             return this;
@@ -411,7 +412,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * @return the {@link org.springframework.security.core.userdetails.User.UserBuilder} for method chaining (i.e. to populate
          * additional attributes for this user)
          */
-        public JWTUserDetails.UserBuilder passwordEncoder(Function<String, String> encoder) {
+        public CustomUserDetails.UserBuilder passwordEncoder(Function<String, String> encoder) {
             Assert.notNull(encoder, "encoder cannot be null");
             this.passwordEncoder = encoder;
             return this;
@@ -438,10 +439,10 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * </p>
          * @param roles the roles for this user (i.e. USER, ADMIN, etc). Cannot be null,
          * contain null values or start with "ROLE_"
-         * @return the {@link JWTUserDetails.UserBuilder} for method chaining (i.e. to populate
+         * @return the {@link CustomUserDetails.UserBuilder} for method chaining (i.e. to populate
          * additional attributes for this user)
          */
-        public JWTUserDetails.UserBuilder roles(String... roles) {
+        public CustomUserDetails.UserBuilder roles(String... roles) {
             List<GrantedAuthority> authorities = new ArrayList<>(roles.length);
             for (String role : roles) {
                 Assert.isTrue(!role.startsWith("ROLE_"),
@@ -459,7 +460,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * additional attributes for this user)
          * @see #roles(String...)
          */
-        public JWTUserDetails.UserBuilder authorities(GrantedAuthority... authorities) {
+        public CustomUserDetails.UserBuilder authorities(GrantedAuthority... authorities) {
             return authorities(Arrays.asList(authorities));
         }
 
@@ -471,7 +472,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * additional attributes for this user)
          * @see #roles(String...)
          */
-        public JWTUserDetails.UserBuilder authorities(Collection<? extends GrantedAuthority> authorities) {
+        public CustomUserDetails.UserBuilder authorities(Collection<? extends GrantedAuthority> authorities) {
             this.authorities = new ArrayList<>(authorities);
             return this;
         }
@@ -484,7 +485,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * additional attributes for this user)
          * @see #roles(String...)
          */
-        public JWTUserDetails.UserBuilder authorities(String... authorities) {
+        public CustomUserDetails.UserBuilder authorities(String... authorities) {
             return authorities(AuthorityUtils.createAuthorityList(authorities));
         }
 
@@ -494,7 +495,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * @return the {@link org.springframework.security.core.userdetails.User.UserBuilder} for method chaining (i.e. to populate
          * additional attributes for this user)
          */
-        public JWTUserDetails.UserBuilder accountExpired(boolean accountExpired) {
+        public CustomUserDetails.UserBuilder accountExpired(boolean accountExpired) {
             this.accountExpired = accountExpired;
             return this;
         }
@@ -505,7 +506,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * @return the {@link org.springframework.security.core.userdetails.User.UserBuilder} for method chaining (i.e. to populate
          * additional attributes for this user)
          */
-        public JWTUserDetails.UserBuilder accountLocked(boolean accountLocked) {
+        public CustomUserDetails.UserBuilder accountLocked(boolean accountLocked) {
             this.accountLocked = accountLocked;
             return this;
         }
@@ -516,7 +517,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * @return the {@link org.springframework.security.core.userdetails.User.UserBuilder} for method chaining (i.e. to populate
          * additional attributes for this user)
          */
-        public JWTUserDetails.UserBuilder credentialsExpired(boolean credentialsExpired) {
+        public CustomUserDetails.UserBuilder credentialsExpired(boolean credentialsExpired) {
             this.credentialsExpired = credentialsExpired;
             return this;
         }
@@ -527,7 +528,7 @@ public class JWTUserDetails implements UserDetails, CredentialsContainer {
          * @return the {@link org.springframework.security.core.userdetails.User.UserBuilder} for method chaining (i.e. to populate
          * additional attributes for this user)
          */
-        public JWTUserDetails.UserBuilder disabled(boolean disabled) {
+        public CustomUserDetails.UserBuilder disabled(boolean disabled) {
             this.disabled = disabled;
             return this;
         }
