@@ -1,7 +1,7 @@
 # StoreReview
 리뷰 서비스를 제공하는 웹 사이트 개발 프로젝트입니다. 😊
 
-[웹사이트 보러가기😋](https://store-review.nextwing.me/)<br>
+~웹사이트 보러가기😋~ 아래의 시연 영상 참고해주세요! <br>
 [Back-End repository](https://github.com/RedJunHee/StoreReview) 👈 해당 repository에서 Pull Request 기록을 볼 수 있습니다!<br>
 [Front-End repository](https://github.com/ghtea/store-review-fe)
 
@@ -29,19 +29,19 @@
     - Ubuntu 20.x
     - Docker Container ( CentOS 7 )
     - Ley's Encrypt SSL Protocol
-- **FrameWork**
+- **Language**
     - Java 8
+- **FrameWork**
     - Spring Boot 2.5.x
-    - Spring Data JPA
-- **Library**
     - Spring Security
+- **Module**
     - Spring Data JPA
     - slf4j
 - **Build Tool**
     - Gradle
 - **DataBase**
     - MySQL
-- **Infra**
+- **Cloud Service**
     - AWS RDS
     - AWS S3
     

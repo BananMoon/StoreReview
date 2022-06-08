@@ -19,9 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
-
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -67,17 +64,16 @@ public class RequestAroundLogAop {
         for (int i=0; i<arguments.length; i++) {
             if (arguments[i] instanceof List) {
                 List<?> listInArgument = (List<?>) arguments[i];
-                for (int j = 0; j < listInArgument.size(); j++) {
+                for (Object o : listInArgument) {
                     if (listInArgument.get(i) instanceof MultipartFile)
-                        inputParam.append(", \"fileName\":").append(((MultipartFile) listInArgument.get(j)).getOriginalFilename());
+                        inputParam.append(", \"fileName\":").append(((MultipartFile) o).getOriginalFilename());
                 }
             } else {
                 inputParam.append(om.writeValueAsString(arguments[i]));
             }
         }
 
-        HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
-
+//        HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
         String  outputMessage = "" ;
         char apiStatus = 'Y';
         String methodName = "";
@@ -86,16 +82,16 @@ public class RequestAroundLogAop {
         LocalDateTime date = LocalDateTime.now();
         String suid = "";
         String said = "";
-        long elapsedTime = 0L;
+        long elapsedTime;
         StringBuilder apiResultDescription = new StringBuilder();
         // joinPoint 리턴 객체 담을 변수
-        Object retValue = null;
+        Object retValue;
         StopWatch stopWatch = new StopWatch();
 
         try {
             // API 요청 사용자 정보 가져오기.
             Authentication authenticationToken = SecurityContextHolder.getContext().getAuthentication();
-            if(authenticationToken.getPrincipal().equals("anonymousUser") == false){
+            if(!authenticationToken.getPrincipal().equals("anonymousUser")){
                 //인증 객체에 저장되어있는 유저정보 가져오기.
                 CustomUserDetails userDetails = (CustomUserDetails) authenticationToken.getPrincipal();
                 suid = userDetails.getSuid();
@@ -137,9 +133,9 @@ public class RequestAroundLogAop {
                     .append(outputMessage).append(System.lineSeparator());
 
             elapsedTime = stopWatch.getTotalTimeMillis();
-            String apiDesc = "";
+            String apiDesc;
             if(apiResultDescription.length() > 8000)
-                apiDesc = apiResultDescription.toString().substring(0,8000);
+                apiDesc = apiResultDescription.substring(0,8000);
             else
                 apiDesc = apiResultDescription.toString();
 
