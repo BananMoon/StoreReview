@@ -1,7 +1,9 @@
 package com.review.storereview.controller.cms;
 
 import com.review.storereview.common.exception.PersonAlreadyExistsException;
+import com.review.storereview.common.jwt.JwtTokenProvider;
 import com.review.storereview.controller.TestController;
+import com.review.storereview.repository.cms.BaseUserRepository;
 import com.review.storereview.service.cms.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,13 +11,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.json.GsonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.security.config.BeanIds;
-import org.springframework.test.annotation.Rollback;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -40,6 +41,9 @@ class UserApiControllerTest extends AbstractControllerTest{
     private MockMvc mvc;
 //    private Gson gson;
     @MockBean private UserServiceImpl userService;  // 목 객체
+    @MockBean private BaseUserRepository userRepository;  // 목 객체
+    private AuthenticationManagerBuilder authenticationManageBuilder;  // 목 객체
+    @MockBean JwtTokenProvider jwtTokenProvider;
 
     @Autowired
     public AuthController authController;
@@ -58,7 +62,7 @@ class UserApiControllerTest extends AbstractControllerTest{
 
     @BeforeEach
     public void setUp() {   // UserApiController를 MockMvc 객체로 만든다.
-        mvc = MockMvcBuilders.standaloneSetup(new UserApiController(userService))
+        mvc = MockMvcBuilders.standaloneSetup(new UserApiController(userRepository, userService, authenticationManageBuilder, jwtTokenProvider))
                 .addFilters(new CharacterEncodingFilter("UTF-8", true)) // charset을 UTF-8로 설정 (option)
                 .build();
         DelegatingFilterProxy delegatingFilterProxy = new DelegatingFilterProxy();
