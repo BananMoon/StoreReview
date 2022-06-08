@@ -5,17 +5,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.review.storereview.common.enumerate.ApiStatusCode;
 import com.review.storereview.common.exception.ReviewServiceException;
-import com.review.storereview.dao.JWTUserDetails;
+import com.review.storereview.dao.CustomUserDetails;
 import com.review.storereview.dao.cms.ApiLog;
 import com.review.storereview.dto.ResponseJsonObject;
 import com.review.storereview.service.cms.LogService;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 /** Class       : RqeustAroundLogAop (AOP)
@@ -100,7 +97,7 @@ public class RequestAroundLogAop {
             Authentication authenticationToken = SecurityContextHolder.getContext().getAuthentication();
             if(authenticationToken.getPrincipal().equals("anonymousUser") == false){
                 //인증 객체에 저장되어있는 유저정보 가져오기.
-                JWTUserDetails userDetails = (JWTUserDetails) authenticationToken.getPrincipal();
+                CustomUserDetails userDetails = (CustomUserDetails) authenticationToken.getPrincipal();
                 suid = userDetails.getSuid();
                 said = userDetails.getSaid();
             }
