@@ -23,22 +23,22 @@ public class ReviewResponseDto {
     private Integer stars;
     private String content;
     @Setter
-    private List<String> imgUrl;
+    private List<Long> imgIds;
     private String createdAt;
     private String updatedAt;
-    private Integer isDelete;
+//    private Integer isDelete;
 
     // 기본 생성자
     @Builder
-    public ReviewResponseDto(Long reviewId, String said, String userId, Integer stars, String content, List<String> imgUrl, String createdAt, String updatedAt, Integer isDelete) {
+    public ReviewResponseDto(Long reviewId, String said, String userId, Integer stars, String content, List<Long> imgIds, String createdAt, String updatedAt) {
         this.reviewId = reviewId;
         this.said = said;
         this.userId = userId;
         this.stars = stars;
         this.content = content;
-        this.imgUrl = imgUrl;
+        this.imgIds = imgIds;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.isDelete = isDelete;
+//        this.isDelete = isDelete;
     }
 }
