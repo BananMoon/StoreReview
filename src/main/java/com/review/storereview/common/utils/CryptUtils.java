@@ -1,19 +1,11 @@
 package com.review.storereview.common.utils;
 
-import io.jsonwebtoken.io.Decoders;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 /**
  * {@Summary en&de-crypt, 암호화 util 클래스 }
@@ -22,8 +14,6 @@ import java.util.Base64;
  */
 @Component
 public class CryptUtils {
-    private final Logger logger = LoggerFactory.getLogger(CryptUtils.class);
-
     private String secretKey ;
     static String IV = ""; // 16bit
 
@@ -39,7 +29,6 @@ public class CryptUtils {
     /**
      *  문자열을 Base64로 인코딩
      * @param input
-     * @return
      */
     public static String Base64Encoding(String input)
     {
@@ -52,7 +41,6 @@ public class CryptUtils {
     /**
      * Base64로 인코딩된 문자열을 Base64디코딩
      * @param input
-     * @return
      */
     public static String Base64Decoding(String input){
         byte[] targetBytes = input.getBytes();
