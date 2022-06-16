@@ -6,7 +6,8 @@ import lombok.*;
 import javax.persistence.*;
 import java.util.List;
 
-@Table(name="REVIEW")
+//@Table(name="REVIEW")
+@Table(name="RENEW_REVIEW")
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PUBLIC)  // 테스트할 경우 PROTECTED-> PUBLIC으로 설정
@@ -33,28 +34,28 @@ public class Review extends BaseTimeEntity {
     private String content;
 
     @Setter
-    @Column(name = "IMG_URL", length = 300)
+    @Column(name = "IMAGE_ID")
     @Convert(converter = ListToStringConverter.class)
-    private List<String> imgUrl;
+    private List<Long> imageIds;
 
     // 지워진 글은 1 (default는 0)
     @Column(name = "IS_DELETE", nullable = false)
     private Integer isDelete;
 
     @Builder
-    public Review (User user, String placeId, Integer stars, String content, List<String> imgUrl, Integer isDelete) {
+    public Review (User user, String placeId, Integer stars, String content, List<Long> imageIds, Integer isDelete) {
         this.user = user;
         this.placeId = placeId;
         this.stars = stars;
         this.content = content;
-        this.imgUrl = imgUrl;
+        this.imageIds = imageIds;
         this.isDelete = isDelete;
     }
 
     // ReviewUpdateRequestDto에서 필요
-    public Review(String content, List<String> imgUrl, Integer stars) {
+    public Review(String content, List<Long> imageIds, Integer stars) {
         this.content = content;
-        this.imgUrl = imgUrl;
+        this.imageIds = imageIds;
         this.stars = stars;
     }
 
@@ -62,10 +63,10 @@ public class Review extends BaseTimeEntity {
         return  user.getSuid();
     }
 
-    public void update(String content , Integer stars, List<String> imgUrl) {
+    public void update(String content , Integer stars, List<Long> imageIds) {
         this.content = content;
         this.stars = stars;
-        this.imgUrl = imgUrl;
+        this.imageIds = imageIds;
     }
 
     public void updateIsDelete(Integer isDelete) {
@@ -82,7 +83,7 @@ public class Review extends BaseTimeEntity {
                 ", placeId='" + placeId + '\'' +
                 ", stars=" + stars +
                 ", content='" + content + '\'' +
-                ", imgUrl=" + imgUrl +
+                ", imageIds=" + imageIds +
                 '}';
     }
 }
