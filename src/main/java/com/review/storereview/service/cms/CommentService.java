@@ -39,8 +39,4 @@ public class CommentService {
         return commentRepository.findByCommentId(commentId);
 
     }
-    // 리뷰 응답 시 코멘트 갯수 조회
-    public int findCommentNumByReviewId(Long reviewId) {
-        return commentRepository.findCommentNumByReviewId(reviewId);
-    }
 }
