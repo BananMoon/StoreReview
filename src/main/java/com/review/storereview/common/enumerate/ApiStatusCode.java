@@ -17,6 +17,7 @@ public enum ApiStatusCode {
     NONE (0,"","")
     ,OK (200,"OK","성공.")
     ,CREATED (201,"Created","리소스 생성 완료.")
+    ,IMAGE_NOT_FOUND (205,"Image Not Found", "이미지 없음.")
     ,CONTENT_NOT_FOUND (204,"Content Not Found", "컨텐츠 없음.")
     ,PARAMETER_CHECK_FAILED (400,"Bad Request","문법상 또는 파라미터 오류가 있어서 서버가 요청사항을 처리하지 못함.")
     ,UNAUTHORIZED (401, "UnAuthorized", "Unauthorized, 사용자 인증 실패.")

@@ -1,9 +1,8 @@
 package com.review.storereview.controller.cms;
 
 import com.review.storereview.common.utils.CryptUtils;
-import com.review.storereview.common.utils.ListToStringConverter;
 import com.review.storereview.config.SecurityConfig;
-import com.review.storereview.service.S3Service;
+import com.review.storereview.service.cms.S3ImageProcessService;
 import com.review.storereview.service.cms.BaseUserService;
 import com.review.storereview.service.cms.CommentService;
 import com.review.storereview.service.cms.ReviewServiceImpl;
@@ -11,9 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.security.config.BeanIds;
@@ -75,7 +72,7 @@ class ReviewApiControllerTest {
     @Autowired private ReviewServiceImpl reviewService;
     @Autowired private CommentService commentService;
     @Autowired private CryptUtils cryptUtils;
-    @Autowired private S3Service s3Service;
+    @Autowired private S3ImageProcessService s3ImageProcessService;
     @Autowired private SecurityConfig securityConfig;
     @Autowired private BaseUserService userService;
 

@@ -40,12 +40,12 @@ class BaseReviewRepositoryTest {
     @DisplayName("리뷰글이 DB에 잘 저장되는지 확인")
     void saveReview() {
         // given
-        ReviewUploadRequestDto requestDto = new ReviewUploadRequestDto("1234", "테스트 내용", stars);
+        ReviewUploadRequestDto requestDto = new ReviewUploadRequestDto("1234", "테스트 내용", stars, null);
         Review review = new Review().builder()
                 .placeId(requestDto.getPlaceId())
                 .content(requestDto.getContent())
                 .stars(requestDto.getStars())
-                .imgUrl(null)
+                .imageIds(null)
                 .user(User.builder()
                         .suid("testSUID")
                         .said("testSAID")
@@ -63,12 +63,12 @@ class BaseReviewRepositoryTest {
     @DisplayName("저장된 리뷰들이 제대로 조회되는지 확인")
     void findReview() {
         // given
-        ReviewUploadRequestDto requestDto = new ReviewUploadRequestDto("1234", "테스트 내용", stars);
+        ReviewUploadRequestDto requestDto = new ReviewUploadRequestDto("1234", "테스트 내용", stars, null);
         Review review = new Review().builder()
                 .placeId(requestDto.getPlaceId())
                 .content(requestDto.getContent())
                 .stars(requestDto.getStars())
-                .imgUrl(null)
+                .imageIds(null)
                 .user(User.builder()
                         .suid("testSUID")
                         .said("testSAID")
@@ -84,6 +84,6 @@ class BaseReviewRepositoryTest {
         Assertions.assertThat(reviewRepository.count()).isEqualTo(2);
         Assertions.assertThat(findReviews.size()).isEqualTo(2);
         Assertions.assertThat(findReviews.get(0).getPlaceId()).isEqualTo(savedReview2.getPlaceId());
-        Assertions.assertThat(findReviews.get(1).getImgUrl()).isEqualTo(savedReview1.getImgUrl());
+        Assertions.assertThat(findReviews.get(1).getImageIds()).isEqualTo(savedReview1.getImageIds());
     }
 }
