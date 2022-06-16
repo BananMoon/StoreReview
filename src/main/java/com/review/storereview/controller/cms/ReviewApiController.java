@@ -12,7 +12,6 @@ import com.review.storereview.dto.request.ReviewUploadRequestDto;
 import com.review.storereview.dto.response.ReviewFindResponseDto;
 import com.review.storereview.dto.response.ReviewFindListResponseDto;
 import com.review.storereview.dto.response.ReviewResponseDto;
-import com.review.storereview.service.cms.CommentService;
 import com.review.storereview.service.cms.ReviewServiceImpl;
 
 import lombok.RequiredArgsConstructor;
