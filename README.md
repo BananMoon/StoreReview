@@ -1,6 +1,8 @@
 # StoreReview
 리뷰 서비스를 제공하는 웹 사이트 개발 프로젝트입니다. 😊
 
+> 2달 간의 개발 기록은 아래 링크의 Repository에 남겨있고, 이후 꾸준히 개선시키는 작업은 위에 있는 저의 Repository에서 진행 중입니다.
+
 ~웹사이트 보러가기😋~ 아래의 시연 영상 참고해주세요! <br>
 [Back-End repository](https://github.com/RedJunHee/StoreReview) 👈 해당 repository에서 Pull Request 기록을 볼 수 있습니다!<br>
 [Front-End repository](https://github.com/ghtea/store-review-fe)
