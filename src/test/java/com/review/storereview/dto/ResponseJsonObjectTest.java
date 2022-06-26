@@ -11,7 +11,7 @@ class ResponseJsonObjectTest {
     @Test
     void 빌드패턴_테스트()
     {
-        ResponseJsonObject dto = ResponseJsonObject.withStatusCode(ApiStatusCode.PARAMETER_CHECK_FAILED.getCode());
+        ResponseJsonObject dto = ResponseJsonObject.withStatusCode(ApiStatusCode.OK.getCode());
         ResponseJsonObject dto2 = ResponseJsonObject.withError(ApiStatusCode.PARAMETER_CHECK_FAILED.getCode(), ApiStatusCode.PARAMETER_CHECK_FAILED.getType(), ApiStatusCode.PARAMETER_CHECK_FAILED.getMessage());
 
 

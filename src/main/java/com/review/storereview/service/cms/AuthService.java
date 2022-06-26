@@ -1,7 +1,6 @@
 package com.review.storereview.service.cms;
 
-import com.review.storereview.common.enumerate.Authority;
-import com.review.storereview.dao.CustomUserDetails;
+import com.review.storereview.security.CustomUserDetails;
 import com.review.storereview.dao.cms.User;
 import com.review.storereview.repository.cms.BaseUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Class       : AuthService
@@ -37,26 +35,23 @@ public class AuthService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(final String username) throws AuthenticationException {
 
-        Optional<User> result = userRepository.findOneByUserId(username);
+        User result = userRepository.findOneByUserId(username)
+                .orElseThrow(() -> new UsernameNotFoundException(username + " -> 일치하는 사용자가 없습니다..") );
 
-        return result.map(user -> createUser(username, user))
-                .orElseThrow(() ->  new UsernameNotFoundException(username + " -> 일치하는 사용자가 없습니다..") );
+        return createUser(result);
     }
     /**
      * DTO.User객체를 UserDetails객체로 변환.
-     * @param username
      * @param user
      * @return
      */
-    private CustomUserDetails createUser(String username, User user) {
+    private CustomUserDetails createUser(User user) {
 //        if (!user.isActivated()) {
 //            throw new RuntimeException(username + " -> 활성화되어 있지 않습니다.");
 //        }
-        List<GrantedAuthority> grantedAuthorities = new ArrayList<GrantedAuthority>();
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
-
-        // 데이터베이스 권한을 가져와서 할당해주어야함.
-        grantedAuthorities.add(new SimpleGrantedAuthority(Authority.USER.getFullName()));
+        grantedAuthorities.add(new SimpleGrantedAuthority(user.getRole().getFullName()));
 
         return new CustomUserDetails(user.getUserId(),
                 user.getPassword(),

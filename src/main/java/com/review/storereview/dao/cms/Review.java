@@ -2,6 +2,7 @@ package com.review.storereview.dao.cms;
 
 import com.review.storereview.common.utils.ListToStringConverter;
 import com.review.storereview.dao.BaseTimeEntity;
+import com.review.storereview.dto.request.ReviewUploadRequestDto;
 import lombok.*;
 import javax.persistence.*;
 import java.util.List;
@@ -17,6 +18,7 @@ public class Review extends BaseTimeEntity {
     @Column(name="REVIEW_ID")
     private Long reviewId;
 
+    @Setter
     @OneToOne(fetch=FetchType.EAGER)      // Review To User
     @JoinColumns({@JoinColumn(name="SUID", referencedColumnName = "SUID"),
                     @JoinColumn(name="SAID", referencedColumnName = "SAID")})
@@ -43,7 +45,7 @@ public class Review extends BaseTimeEntity {
     private Integer isDelete;
 
     @Builder
-    public Review (User user, String placeId, Integer stars, String content, List<Long> imageIds, Integer isDelete) {
+    private Review (User user, String placeId, Integer stars, String content, List<Long> imageIds, Integer isDelete) {
         this.user = user;
         this.placeId = placeId;
         this.stars = stars;
@@ -59,18 +61,28 @@ public class Review extends BaseTimeEntity {
         this.stars = stars;
     }
 
+    public static Review createReview(ReviewUploadRequestDto requestDto) {
+        return Review.builder()
+                .placeId(requestDto.getPlaceId())
+                .content(requestDto.getContent())
+                .stars(requestDto.getStars())
+                .imageIds(requestDto.getImgIds())
+                .isDelete(0)
+                .build();
+    }
+
     public String getSuid() {
         return  user.getSuid();
     }
 
-    public void update(String content , Integer stars, List<Long> imageIds) {
+    public void updateReview(String content , Integer stars, List<Long> imageIds) {
         this.content = content;
         this.stars = stars;
         this.imageIds = imageIds;
     }
 
-    public void updateIsDelete(Integer isDelete) {
-        this.isDelete = isDelete;
+    public void deleteReview() {
+        this.isDelete = 1;
     }
 
     // for Test

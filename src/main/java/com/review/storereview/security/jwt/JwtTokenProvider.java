@@ -1,13 +1,11 @@
-package com.review.storereview.common.jwt;
+package com.review.storereview.security.jwt;
 
 import com.review.storereview.common.utils.CryptUtils;
-import com.review.storereview.dao.CustomUserDetails;
+import com.review.storereview.security.CustomUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationProvider;

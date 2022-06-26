@@ -2,10 +2,10 @@ package com.review.storereview.controller.cms;
 
 import com.review.storereview.common.enumerate.ApiStatusCode;
 import com.review.storereview.common.exception.ContentNotFoundException;
-import com.review.storereview.common.jwt.SecurityUtil;
+import com.review.storereview.security.SecurityUtil;
 import com.review.storereview.common.utils.CryptUtils;
 import com.review.storereview.common.utils.StringUtil;
-import com.review.storereview.dao.CustomUserDetails;
+import com.review.storereview.security.CustomUserDetails;
 import com.review.storereview.dao.cms.Comment;
 import com.review.storereview.dao.cms.User;
 import com.review.storereview.dto.ResponseJsonObject;

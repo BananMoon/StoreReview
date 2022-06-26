@@ -83,4 +83,19 @@ public class CryptUtils {
         byte[] decrypted = cipher.doFinal(decodedBytes);
         return new String(decrypted, "UTF-8");
     }
+
+    /**
+     * 기본 문자열을 AES256으로 암호화한후 인코딩한다.
+     * @param str
+     * @return
+     */
+    public String callAESEncode(String str) {
+        String encodedSaid = null;
+        try {
+            encodedSaid = AES_Encode(str);
+        } catch (Exception e) {
+//            log.error(e.getMessage());
+        }
+        return encodedSaid;
+    }
 }
