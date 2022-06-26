@@ -1,12 +1,11 @@
 package com.review.storereview.controller.cms;
 
 import com.review.storereview.common.enumerate.ApiStatusCode;
-//import com.review.storereview.common.jwt.JwtAuthenticationFilter;
-import com.review.storereview.common.jwt.JwtTokenProvider;
+import com.review.storereview.security.jwt.JwtTokenProvider;
 import com.review.storereview.dto.ResponseJsonObject;
 import com.review.storereview.dto.response.TokenResponseDto;
 import com.review.storereview.dto.request.UserSigninRequestDto;
-import com.review.storereview.common.jwt.AuthorizationCheckFilter;
+import com.review.storereview.security.jwt.AuthorizationCheckFilter;
 import com.review.storereview.repository.cms.BaseUserRepository;
 import com.review.storereview.service.cms.BaseUserService;
 import com.review.storereview.dto.request.UserSaveRequestDto;
