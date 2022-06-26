@@ -1,11 +1,12 @@
-# StoreReview
-리뷰 서비스를 제공하는 웹 사이트 개발 프로젝트입니다. 😊
+# 여기모아 🏬
+```
+방문한 가게의 리뷰를 작성하여 공유하는 서비스 '여기모아' 웹 서비스 개발 프로젝트입니다. 😊
+2달 간의 개발 기록은 아래 링크의 Repository에 남겨있으며, 이후 🌟필요한 부분을 개선시키는 작업은 현재 저의 Repository에서 진행 중🌟입니다.
+해당 README에는 개선된 작업 상황 또한 추가로 작성 중에 있습니다. 
+```
 
-> 2달 간의 개발 기록은 아래 링크의 Repository에 남겨있으며, 이후 필요한 부분을 개선시키는 작업은 현재 저의 Repository에서 진행 중입니다.
-해당 README 또한 개선된 작업 상황을 작성 중에 있으며, 해결과제의 Back-End에는 본인의 작업 중심으로 작성하였습니다. 
-
-~웹사이트 보러가기😋~ 아래의 시연 영상 참고해주세요! <br>
-[Back-End repository](https://github.com/RedJunHee/StoreReview) 👈 해당 repository에서 Pull Request 기록을 볼 수 있습니다!<br>
+~웹사이트 보러가기😋 (서비스 중단)~ 아래의 시연 영상 참고해주세요! <br>
+[Back-End repository](https://github.com/RedJunHee/StoreReview) 👈 해당 repository에서 2달동안 진행한 Pull Request 기록을 볼 수 있습니다!<br>
 [Front-End repository](https://github.com/ghtea/store-review-fe)
 
 ## 팀원 🧑🏻‍🤝‍🧑🏻
@@ -78,7 +79,7 @@
 - [X] 기능 구현
     - [X] Spring Security JWT 인증/인가 기능 구현
       - [X] 로그인 (Authenticate) JWT 발급
-    - [X] **회원가입 **
+    - [X] **회원가입**
       - ~Validator 기능 구현~
     - [X] Utils 기능 구현
       - AES256, BCrypt, **Base64** 인코딩 및 디코딩
@@ -93,7 +94,7 @@
     - [X] 리뷰 코멘트 수정 (리뷰 사용자 체크 후 수정 기능 수행)
 ---
 
-**개선 작업**  ([관련 PR](https://github.com/BananMoon/StoreReview/pulls?q=is%3Apr+is%3Aclosed))
+**개선 작업**  (진행 중, [관련 PR](https://github.com/BananMoon/StoreReview/pulls?q=is%3Apr+is%3Aclosed))
 - [X] 리뷰 관련 요청 API에서 이미지 관련 작업을 분리하였습니다.
   - [X] 이미지 Entity, MVC layer 추가 생성
   - [ ] 테스트코드 추가 생성
