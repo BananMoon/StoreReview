@@ -37,10 +37,10 @@ public class AuthService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(final String username) throws AuthenticationException {
 
-        Optional<User> result = userRepository.findOneByUserId(username);
+        User result = userRepository.findOneByUserId(username)
+                .orElseThrow(() -> new UsernameNotFoundException(username + " -> 일치하는 사용자가 없습니다..") );
 
-        return result.map(user -> createUser(username, user))
-                .orElseThrow(() ->  new UsernameNotFoundException(username + " -> 일치하는 사용자가 없습니다..") );
+        return createUser(result);
     }
     /**
      * DTO.User객체를 UserDetails객체로 변환.
@@ -48,7 +48,7 @@ public class AuthService implements UserDetailsService {
      * @param user
      * @return
      */
-    private CustomUserDetails createUser(String username, User user) {
+    private CustomUserDetails createUser(User user) {
 //        if (!user.isActivated()) {
 //            throw new RuntimeException(username + " -> 활성화되어 있지 않습니다.");
 //        }
