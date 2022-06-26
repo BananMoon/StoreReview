@@ -1,10 +1,10 @@
-package com.review.storereview.controller;
+package com.review.storereview.controller.cms;
 
 import com.review.storereview.common.enumerate.ApiStatusCode;
 import com.review.storereview.dto.ResponseJsonObject;
 import com.review.storereview.dto.response.ImageUploadResponseDto;
 import com.review.storereview.service.cms.ImageService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
  * Description : 이미지 관련 http 요청 컨트롤러
  * History     : [2022-06-09] - 문 윤지 - Class Create
 */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RestController
 public class ImageApiController {
     private final ImageService imageService;
@@ -33,6 +33,7 @@ public class ImageApiController {
         imageService.deleteImage(imageId);
     }
 
+    // 리뷰 글을 제거하는 경우에만 호출된다.
     @DeleteMapping("/review/{reviewId}/images")
     public void deleteAllImages (@PathVariable Long reviewId) {
         imageService.deleteAllImages(reviewId);
