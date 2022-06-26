@@ -1,11 +1,10 @@
 package com.review.storereview.config;
 
-//import com.review.storereview.common.jwt.JwtAuthenticationFilter;
-import com.review.storereview.common.jwt.JwtTokenProvider;
+import com.review.storereview.security.jwt.JwtTokenProvider;
 import com.review.storereview.common.enumerate.Authority;
 import com.review.storereview.common.exception.handler.AuthenticationExceptionHandler;
 import com.review.storereview.common.exception.handler.AuthorizationExceptionHandler;
-import com.review.storereview.common.jwt.AuthorizationCheckFilter;
+import com.review.storereview.security.jwt.AuthorizationCheckFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
