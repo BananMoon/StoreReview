@@ -1,6 +1,6 @@
-package com.review.storereview.common.jwt;
+package com.review.storereview.security;
 
-import com.review.storereview.dao.CustomUserDetails;
+import com.review.storereview.security.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
