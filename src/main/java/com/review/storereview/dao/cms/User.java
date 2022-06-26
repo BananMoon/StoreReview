@@ -1,5 +1,6 @@
 package com.review.storereview.dao.cms;
 
+import com.review.storereview.common.enumerate.Authority;
 import com.review.storereview.common.enumerate.Gender;
 import lombok.*;
 
@@ -55,14 +56,19 @@ public class User implements Serializable {
     @Column(name="PHONE", nullable = false)
     private String phone;
 
+    @Column(name="ROLE", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Authority role;
+
     @Builder
     public User(String suid, String said, String userId, String password
-            , String name, String nickname, LocalDate birthDate
+            , Authority role, String name, String nickname, LocalDate birthDate
             , Gender gender, String phone) {
         this.suid = suid;
         this.said = said;
         this.userId = userId;
         this.password = password;
+        this.role = role;
         this.name = name;
         this.nickname = nickname;
         this.birthDate = birthDate;
