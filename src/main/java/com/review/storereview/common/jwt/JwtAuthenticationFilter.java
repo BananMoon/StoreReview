@@ -1,2 +1,2 @@
-package com.review.storereview.common.jwt;public class JwtAuthenticationFilter {
+package com.review.storereview.security.jwt;public class JwtAuthenticationFilter {
 }

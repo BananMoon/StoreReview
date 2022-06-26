@@ -1,4 +1,4 @@
-package com.review.storereview.common.jwt;
+package com.review.storereview.security.jwt;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
