@@ -1,7 +1,6 @@
 package com.review.storereview.service.cms;
 
-import com.review.storereview.common.enumerate.Authority;
-import com.review.storereview.dao.CustomUserDetails;
+import com.review.storereview.security.CustomUserDetails;
 import com.review.storereview.dao.cms.User;
 import com.review.storereview.repository.cms.BaseUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Class       : AuthService
@@ -44,7 +42,6 @@ public class AuthService implements UserDetailsService {
     }
     /**
      * DTO.User객체를 UserDetails객체로 변환.
-     * @param username
      * @param user
      * @return
      */
@@ -52,11 +49,9 @@ public class AuthService implements UserDetailsService {
 //        if (!user.isActivated()) {
 //            throw new RuntimeException(username + " -> 활성화되어 있지 않습니다.");
 //        }
-        List<GrantedAuthority> grantedAuthorities = new ArrayList<GrantedAuthority>();
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
-
-        // 데이터베이스 권한을 가져와서 할당해주어야함.
-        grantedAuthorities.add(new SimpleGrantedAuthority(Authority.USER.getFullName()));
+        grantedAuthorities.add(new SimpleGrantedAuthority(user.getRole().getFullName()));
 
         return new CustomUserDetails(user.getUserId(),
                 user.getPassword(),
