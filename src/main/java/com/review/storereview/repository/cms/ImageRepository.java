@@ -9,4 +9,5 @@ import java.util.List;
 public interface ImageRepository extends JpaRepository<Image, Long> {
     Image findByImageId(Long imageId);
     List<Image> findAllByReviewId(Long reviewId);
+    void deleteAllByImageId(Iterable<? extends Long> imgIds);
 }
