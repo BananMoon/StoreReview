@@ -56,11 +56,14 @@ public class Image extends BaseTimeEntity {
         return encodedImgUrls;
     }
 
-    public static void deleteImage(List<Image> images) {
+    public static void deleteAll(List<Image> images) {
         if (isEmptydoubleCheck(images)) throw new ImageNotFoundException();
         for (Image img : images) {
             img.setReviewId(null);
         }
+    }
+    public static void deleteOne(Image image) {
+        image.setReviewId(null);
     }
 
     /**
