@@ -10,26 +10,24 @@ import java.util.List;
  */
 @Getter
 public class ReviewFindResponseDto {
-    // List< [REVIEW_ID, SAID, USER_ID, STARS, CONTENT, IMG_URL, CREATED_AT, UPDATED_AT, IS_DELETE]>
+    // List< [REVIEW_ID, SAID, USER_ID, STARS, CONTENT, CREATED_AT, UPDATED_AT, IS_DELETE]>
     private final Long reviewId;
     private final String said;
     private final String userId;
     private final Integer stars;
     private final String content;
-    private final List<String> imgUrl;
     private final String createdAt;
     private final String updatedAt;
     private final Integer isDelete;
     private final int commentNum;
 
     // 기본 생성자
-    public ReviewFindResponseDto(Long reviewId, String said, String userId, Integer stars, String content, List<String> imgUrl, String createdAt, String updatedAt, Integer isDelete, int commentNum) {
+    public ReviewFindResponseDto(Long reviewId, String said, String userId, Integer stars, String content, String createdAt, String updatedAt, Integer isDelete, int commentNum) {
         this.reviewId = reviewId;
         this.said = said;
         this.userId = userId;
         this.stars = stars;
         this.content = content;
-        this.imgUrl = imgUrl;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.isDelete = isDelete;

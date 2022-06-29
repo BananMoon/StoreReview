@@ -4,7 +4,7 @@ import com.review.storereview.common.exception.ContentNotFoundException;
 import com.review.storereview.common.exception.ImageNotFoundException;
 import com.review.storereview.common.utils.CryptUtils;
 import com.review.storereview.common.utils.StringUtil;
-import com.review.storereview.dao.CustomUserDetails;
+import com.review.storereview.security.CustomUserDetails;
 import com.review.storereview.dao.cms.Image;
 import com.review.storereview.dao.cms.Review;
 import com.review.storereview.dao.cms.User;
@@ -40,16 +40,26 @@ public class ReviewServiceImpl {
 
     /** {@Summary place에 해당하는 n개의 리뷰 데이터 리스트 조회 Service (2차원 리스트)} */
     public ReviewFindListResponseDto getAllReviews(String placeId) {
-        // TODO 해당하는 placeId가 없을 경우 throw Error
-        List<Review> findReviews = Optional.ofNullable(baseReviewRepository.findAllByPlaceIdAndIsDeleteIsOrderByCreatedAtDesc(placeId, 0))
+        List<Review> reviews = Optional.ofNullable(baseReviewRepository.findAllByPlaceIdAndIsDeleteIsOrderByCreatedAtDesc(placeId, 0))
                 .orElseThrow(ContentNotFoundException::new);
+        Double placeAvgStars = calculateAverageOfPlaceStars(reviews);
 
-        // 1. placeAvgStars 계산
-        Double placeAvgStars = AveragePlaceStars(findReviews);
-        // 2. listResponseDto 생성 및 list에 추가
-        ReviewFindListResponseDto listResponseDto = new ReviewFindListResponseDto(placeAvgStars);
-        for (Review review : findReviews) {
-            listResponseDto.addReview(createReviewFindResponseDto(review));
+        // listResponseDto 생성 및 list에 추가
+        ReviewFindListResponseDto listResponseDto = ReviewFindListResponseDto.createReviewsResponseDto(placeAvgStars);
+        for (Review review : reviews) {
+            listResponseDto.addReview(
+                    new ReviewFindResponseDto(
+                            review.getReviewId(),
+                            (review.getUser().getSaid()),
+                            review.getUser().getUserId(),
+                            review.getStars(),
+                            CryptUtils.Base64Encoding(review.getContent()),
+                            StringUtil.DateTimeToString(review.getCreatedAt()),
+                            StringUtil.DateTimeToString(review.getUpdatedAt()),
+                            review.getIsDelete(),
+                            commentRepository.findCommentNumByReviewId(review.getReviewId())
+                    )
+            );
         }
         return listResponseDto;
     }
@@ -60,91 +70,50 @@ public class ReviewServiceImpl {
         Review review = Optional.ofNullable(baseReviewRepository.findByReviewIdAndIsDeleteIs(reviewId, 0))
                 .orElseThrow(ContentNotFoundException::new);
 
-        ReviewFindResponseDto responseDto = createReviewFindResponseDto(review);
-        return responseDto;
-    }
-
-    /**
-     * ResponseDto 생성
-     * @param review
-     */
-    private ReviewFindResponseDto createReviewFindResponseDto(Review review) {
-        // 1. 관련 코멘트 갯수
-        int commentNum = Optional.of(commentRepository.findCommentNumByReviewId(review.getReviewId()))
-                .orElse(0);
-        // 2. imageId로 url 조회 및 인코딩
-        List<Image> images =  Optional.ofNullable(imageRepository.findAllByReviewId(review.getReviewId()))
-                .orElseThrow(ImageNotFoundException::new);
-        List<String> encodedImgUrls = new ArrayList<>();
-        if (!isEmptydoubleCheck(images)) {
-            for (Image img : images) {
-                encodedImgUrls.add(CryptUtils.Base64Encoding(img.getFileUrl()));
-            }
-        }
-        // 4. dto 생성
         return new ReviewFindResponseDto(
                 review.getReviewId(),
-                getEncodedSaid(review.getUser().getSaid()),
+                (review.getUser().getSaid()),
                 review.getUser().getUserId(),
                 review.getStars(),
                 CryptUtils.Base64Encoding(review.getContent()),
-                encodedImgUrls,
                 StringUtil.DateTimeToString(review.getCreatedAt()),
                 StringUtil.DateTimeToString(review.getUpdatedAt()),
                 review.getIsDelete(),
-                commentNum
+                commentRepository.findCommentNumByReviewId(review.getReviewId())
         );
-    }
-
-    /**
-     * {@Summary 특정 가게의 리뷰글들의 평균 계산하여 가게 평균 구하는 Service}
-     * @param findReviews
-     */
-    public Double AveragePlaceStars(List<Review> findReviews) {
-        Double sum = .0;
-        for(Review review : findReviews) {
-            sum += review.getStars();
-        }
-        return sum / findReviews.size();
     }
 
     /**{@Summary 리뷰 업로드 Service} */
     @Transactional
     public ReviewResponseDto uploadReview(CustomUserDetails userDetails, ReviewUploadRequestDto requestDto) {
         // 1. 리뷰 생성
-        Review review = new Review().builder()
-                .placeId(requestDto.getPlaceId())
-                .content(requestDto.getContent())
-                .stars(requestDto.getStars())
-                .imageIds(requestDto.getImgIds())
-                .user(User.builder()
-                        .userId(userDetails.getUsername())  // Name == userId(이메일)
-                        .suid(userDetails.getSuid())
-                        .said(userDetails.getSaid())
-                        .build())
-                .isDelete(0)
-                .build();
+        Review review = Review.createReview(requestDto);
+        review.setUser(User.builder()
+                .userId(userDetails.getUsername())  // Name == userId(이메일)
+                .suid(userDetails.getSuid())
+                .said(userDetails.getSaid())
+                .build());
+
         //  2. 이미지 테이블의 reviewID setting
-        if (!isEmptydoubleCheck(requestDto.getImgIds())) {
-            for (Long imgId : requestDto.getImgIds()) {
+        if (!isEmptydoubleCheck(review.getImageIds())) {
+            for (Long imgId : review.getImageIds()) {
                 Image image = imageRepository.findByImageId(imgId);
 //            Image image = Optional.ofNullable(imageRepository.findByImageId(imgId))
 //                    .orElseThrow(ImageNotFoundException::new);
-                image.setReview(review);
+                image.setReviewId(review.getReviewId());
             }
         }
         baseReviewRepository.save(review);
         // 3. dto 생성
-        ReviewResponseDto responseDto = new ReviewResponseDto(
+        return new ReviewResponseDto(
                 review.getReviewId(),
-                getEncodedSaid(review.getUser().getSaid()),
+                cryptUtils.callAESEncode(review.getUser().getSaid()),
                 userDetails.getUsername(),
-                review.getStars(), requestDto.getContent(),
+                review.getStars(), review.getContent(),
                 review.getImageIds(),
                 StringUtil.DateTimeToString(review.getCreatedAt()),
                 StringUtil.DateTimeToString(review.getUpdatedAt())
                 );
-        return responseDto;
     }
 
     /** {@Summary 리뷰 업데이트 Service} */
@@ -158,12 +127,9 @@ public class ReviewServiceImpl {
         }
 
         // img 테이블 set
-        List<Image> imgs = Optional.ofNullable(imageRepository.findAllByReviewId(reviewId))
-                .orElseThrow(ImageNotFoundException::new);
-        for (Image img : imgs) {
-            img.setReview(existReview);
-        }
-        existReview.update(
+        Image.insertReviewId(imageRepository.findAllByReviewId(reviewId), reviewId);
+
+        existReview.updateReview(
                 CryptUtils.Base64Decoding(requestDto.getContent()),
                 requestDto.getStars(),
                 requestDto.getImgIds()
@@ -172,20 +138,13 @@ public class ReviewServiceImpl {
         // responseDto 반환
         return new ReviewResponseDto(
                 existReview.getReviewId(),
-                getEncodedSaid(existReview.getUser().getSaid()),
+                cryptUtils.callAESEncode(existReview.getUser().getSaid()),
                 existReview.getUser().getUserId(),
                 existReview.getStars(), existReview.getContent(),
                 existReview.getImageIds(),
                 StringUtil.DateTimeToString(existReview.getCreatedAt()),
                 StringUtil.DateTimeToString(existReview.getUpdatedAt())
         );
-    }
-    /** 작성자의 suid와 사용자의 suid를 비교하여 검증한다. */
-    private boolean writerAuthorityCheck(String writerSuid, String userSuid) {
-        System.out.println("ReviewServiceImpl.writerAuthorityCheck에서 걸러지는건가?");
-        if (writerSuid.equals(userSuid))
-            return true;
-        return false;
     }
 
     /**{@Summary 리뷰 데이터 제거 Service} **/
@@ -199,15 +158,8 @@ public class ReviewServiceImpl {
 //            return new ResponseEntity<>(ResponseJsonObject.withError(ApiStatusCode.FORBIDDEN.getCode(), ApiStatusCode.FORBIDDEN.getType(), ApiStatusCode.FORBIDDEN.getMessage()), HttpStatus.FORBIDDEN);
         }
 
-        // isDelete 업데이트 (서비스 상 제거)
-        existReview.updateIsDelete(1);
-
-        // img 테이블 set
-        List<Image> imgs = Optional.ofNullable(imageRepository.findAllByReviewId(reviewId))
-                .orElseThrow(ImageNotFoundException::new);
-        for (Image img : imgs) {
-            img.setReview(null);
-        }
+        existReview.deleteReview();
+        Image.deleteAll(imageRepository.findAllByReviewId(reviewId));
     }
     /**
      * 프론트로부터 혹은 DB로부터 전달된 객체가 비었는지 체크하기 위해
@@ -220,15 +172,23 @@ public class ReviewServiceImpl {
             }
         return true;
     }
+    /** 작성자의 suid와 사용자의 suid를 비교하여 검증한다. */
+    private boolean writerAuthorityCheck(String writerSuid, String userSuid) {
+        System.out.println("ReviewServiceImpl.writerAuthorityCheck에서 걸러지는건가?");
+        if (writerSuid.equals(userSuid))
+            return true;
+        return false;
+    }
 
-    private String getEncodedSaid(String said) {
-        String encodedSaid = null;
-        try {
-             encodedSaid = cryptUtils.AES_Encode(said);
-        } catch (Exception e) {
-            log.error(e.getMessage());
+    /**
+     * {@Summary 특정 가게의 리뷰글들의 평균 계산하여 가게 평균 구하는 Service}
+     * @param findReviews
+     */
+    private Double calculateAverageOfPlaceStars(List<Review> findReviews) {
+        Double sum = .0;
+        for(Review review : findReviews) {
+            sum += review.getStars();
         }
-        return encodedSaid;
+        return sum / findReviews.size();
     }
 }
-

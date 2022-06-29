@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * Class       : ImageApiController
  * Author      : 문 윤 지
@@ -21,10 +23,21 @@ import org.springframework.web.multipart.MultipartFile;
 public class ImageApiController {
     private final ImageService imageService;
 
+    // TODO: 2022-06-26 가게 조회 화면에서는 이미지 썸네일을 보여주고, 리뷰를 클릭했을 때 이미지를 보여주도록?
+    // TODO: 2022-06-26 이미지 조회는 어떤 값으로 조회할지? reviewId로 먼저 조회하고 그 reviewId로 이미지를 조회해야할 것 같은데
+    @GetMapping("/review/{reviewId}/images")
+    public ResponseEntity<ResponseJsonObject> findImages(@PathVariable Long reviewId) {
+        ResponseJsonObject resJsonObj = ResponseJsonObject
+                .withStatusCode(ApiStatusCode.OK.getCode())
+                .setData(imageService.listAll(reviewId));
+
+        return new ResponseEntity<>(resJsonObj, HttpStatus.OK);
+    }
+
     @PostMapping("/review/image")
     public ResponseEntity<ResponseJsonObject> createImage(@RequestPart(value = "imgFile", required = false) MultipartFile imgFile) {
         ImageUploadResponseDto image = imageService.uploadImage(imgFile);
-        ResponseJsonObject resDto = ResponseJsonObject.withStatusCode(ApiStatusCode.OK.getCode()).setData(image.getImageId());
+        ResponseJsonObject resDto = ResponseJsonObject.withStatusCode(ApiStatusCode.OK.getCode()).setData(image);
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
 
