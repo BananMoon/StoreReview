@@ -26,6 +26,6 @@ public class ImageClearScheduler {
         // TODO: 2022-06-27 로그를 남겨둬야할 것 같다.
         log.info("ImageClearScheduler.clearDeletedImage() 실행 (" + now + ")");
 
-        imageService.clearUnusedImagesInDBAndS3for3weeks(now.toDate());
+        imageService.clearUnusedImagesInDBAndS3for3weeksByScheduler(now.toDate());
     }
 }
