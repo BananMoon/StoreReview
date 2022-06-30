@@ -236,7 +236,7 @@ public class CommentApiController {
 
             //SUID 유효성 체크.
             if (comment.getUser().getSuid().equals(userDetails.getSuid())) {
-                comment.setisDelete(1);
+                comment.setIsDelete(1);
                 // 코멘트 삭제 서비스 처리
                 Comment deleteComment = commentService.save(comment);
 
