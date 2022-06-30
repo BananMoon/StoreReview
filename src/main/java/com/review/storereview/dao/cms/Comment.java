@@ -37,9 +37,9 @@ public class Comment extends BaseTimeEntity {
     private Integer isDelete;
 
 
-    public void setisDelete(Integer isdelete)
+    public void setIsDelete(Integer isDelete)
     {
-        isDelete = isdelete;
+        this.isDelete = isDelete;
     }
 
     @Builder

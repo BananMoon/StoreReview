@@ -45,13 +45,14 @@ public class ImageService {
 
         return new ImageUploadResponseDto(savedImage.getImageId(), savedImage.getReviewId(), uploadedImageUrl);
     }
-
+    // 실제 제거가 아닌 reviewId와의 매핑을 제거한다.
     public Long deleteImage(Long imageId) {
         Image image = Optional.ofNullable(imageRepository.findByImageId(imageId))
                 .orElseThrow(ImageNotFoundException::new);
 
-        Image.deleteOne(image);
-        imageRepository.deleteById(image.getImageId());
+        if (image.getReviewId() != null) {
+            Image.deleteOne(image);
+        }
         return image.getImageId();
     }
 
@@ -65,20 +66,20 @@ public class ImageService {
         imageRepository.deleteAllById(images.stream().map(Image::getImageId).collect(Collectors.toList()));
     }
 
-    public void clearUnusedImagesInDBAndS3for3weeks(Date now) {
+    public void clearUnusedImagesInDBAndS3for3weeksByScheduler(Date now) {
         List<Image> imgsWithReviewIdIsNull = imageRepository.findAllByReviewId(null);
-        List<Long> imgIds = new ArrayList<>();
+        List<Long> unusedImgIds = new ArrayList<>();
 
         if (!Objects.isNull(imgsWithReviewIdIsNull)) {
             for (Image img : imgsWithReviewIdIsNull) {
                 if (isUnusedFor3weeks(img.getUpdatedAt())) {
-                    imgIds.add(img.getImageId());
+                    unusedImgIds.add(img.getImageId());
                     s3ImageProcessService.deleteFile(img.getFileName());    // s3저장소에서 제거
                 }
             }
         }
 
-        imageRepository.deleteAllByImageId(imgIds);
+        imageRepository.deleteAllByImageIdIn(unusedImgIds);
     }
 
     private boolean isUnusedFor3weeks(LocalDateTime updatedAt) {

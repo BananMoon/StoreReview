@@ -1,9 +1,11 @@
 package com.review.storereview.service.cms;
 
 import com.review.storereview.common.exception.ContentNotFoundException;
+import com.review.storereview.common.exception.CustomAuthenticationException;
 import com.review.storereview.common.exception.ImageNotFoundException;
 import com.review.storereview.common.utils.CryptUtils;
 import com.review.storereview.common.utils.StringUtil;
+import com.review.storereview.dao.cms.Comment;
 import com.review.storereview.security.CustomUserDetails;
 import com.review.storereview.dao.cms.Image;
 import com.review.storereview.dao.cms.Review;
@@ -95,7 +97,7 @@ public class ReviewServiceImpl {
                 .build());
 
         //  2. 이미지 테이블의 reviewID setting
-        if (!isEmptydoubleCheck(review.getImageIds())) {
+        if (!isEmptyDoubleCheck(review.getImageIds())) {
             for (Long imgId : review.getImageIds()) {
                 Image image = imageRepository.findByImageId(imgId);
 //            Image image = Optional.ofNullable(imageRepository.findByImageId(imgId))
@@ -118,11 +120,11 @@ public class ReviewServiceImpl {
 
     /** {@Summary 리뷰 업데이트 Service} */
     @Transactional
-    public ReviewResponseDto updateReview(String suid, Long reviewId, ReviewUpdateRequestDto requestDto) {
+    public ReviewResponseDto updateReview(String suid, Long reviewId, ReviewUpdateRequestDto requestDto) throws CustomAuthenticationException {
         // 기존 리뷰 조회
         Review existReview = baseReviewRepository.findByReviewIdAndIsDeleteIs(reviewId, 0);
         if (!writerAuthorityCheck(existReview.getUser().getSuid(),suid)){
-//            throw new CustomAuthenticationException();
+            throw new CustomAuthenticationException();
 //            return new ResponseEntity<>(ResponseJsonObject.withError(ApiStatusCode.FORBIDDEN.getCode(), ApiStatusCode.FORBIDDEN.getType(), ApiStatusCode.FORBIDDEN.getMessage()), HttpStatus.FORBIDDEN);
         }
 
@@ -149,23 +151,32 @@ public class ReviewServiceImpl {
 
     /**{@Summary 리뷰 데이터 제거 Service} **/
     @Transactional
-    public void deleteReview(String suid, Long reviewId) {
+    public void deleteReview(String suid, Long reviewId) throws CustomAuthenticationException {
         // 기존 리뷰 조회
         Review existReview = Optional.ofNullable(baseReviewRepository.findByReviewIdAndIsDeleteIs(reviewId, 0))
                 .orElseThrow(ImageNotFoundException::new);
         if (!writerAuthorityCheck(existReview.getUser().getSuid(),suid)){
-//            throw new CustomAuthenticationException();
+            throw new CustomAuthenticationException();
 //            return new ResponseEntity<>(ResponseJsonObject.withError(ApiStatusCode.FORBIDDEN.getCode(), ApiStatusCode.FORBIDDEN.getType(), ApiStatusCode.FORBIDDEN.getMessage()), HttpStatus.FORBIDDEN);
         }
-
+        // imageIds 있는지 체크
+        if (!isEmptyDoubleCheck(existReview.getImageIds())) {
+            Image.deleteAll(imageRepository.findAllByReviewId(reviewId));
+        }
         existReview.deleteReview();
-        Image.deleteAll(imageRepository.findAllByReviewId(reviewId));
+        // 코멘트의 댓글들도 isDelete 세팅
+        List<Comment> relatedComments = commentRepository.findAllByReviewIdAndIsDelete(existReview.getReviewId(), 0);
+        if (!isEmptyDoubleCheck(relatedComments)) {
+            for (Comment comment: relatedComments) {
+                comment.setIsDelete(1);
+            }
+        }
     }
     /**
      * 프론트로부터 혹은 DB로부터 전달된 객체가 비었는지 체크하기 위해
      * null인 경우와 빈 배열일 경우를 동시에 체크한다.
      */
-    private boolean isEmptydoubleCheck(List<?> objects) {
+    private boolean isEmptyDoubleCheck(List<?> objects) {
         if (!Objects.isNull(objects))
             if (!objects.isEmpty()) {
                 return false;
