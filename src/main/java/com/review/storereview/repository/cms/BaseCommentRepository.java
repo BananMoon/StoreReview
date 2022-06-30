@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Class       : BaseCommentRepository
  * Author      : 조 준 희
@@ -29,6 +31,7 @@ public interface BaseCommentRepository extends JpaRepository<Comment, Long> {
 //                            "  AND CO.SAID = UI.SAID    " +
 //                            "WHERE CO.REVIEW = ?1 ", nativeQuery = true )
     Page<Comment> findAllByReviewIdAndIsDelete(Long reviewId, Integer IsDelete, Pageable pageRequest);
+    List<Comment> findAllByReviewIdAndIsDelete(Long reviewId, Integer IsDelete);
     Comment findByCommentId(Long commentID);
 
     @Query(value= "SELECT COUNT(COMMENT.COMMENT_ID) from COMMENT where COMMENT.REVIEW_ID =?", nativeQuery = true)
