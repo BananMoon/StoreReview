@@ -1,12 +1,11 @@
 # 여기모아 🏬
 ```
 2달 간의 개발 기록은 아래 링크의 Repository에 남겨있으며, 
-이후 🌟필요한 부분을 개선시키는 작업은 현재 저의 Repository에서 진행 중🌟입니다.
-해당 README에는 개선된 작업 상황 또한 추가로 작성 중에 있습니다. 
+이후 필요한 부분을 개선시키는 작업은 저의 Repository에서 진행하였습니다.
 ```
 
 ~웹사이트 보러가기😋 (서비스 중단)~ 아래의 시연 영상 참고해주세요! <br>
-[Back-End repository](https://github.com/RedJunHee/StoreReview) 👈 해당 repository에서 2달동안 진행한 Pull Request 기록을 볼 수 있습니다!<br>
+[Back-End repository](https://github.com/RedJunHee/StoreReview) 👈 해당 repository에서 2달동안 진행한 Pull Request 기록을 볼 수 있습니다.<br>
 [Front-End repository](https://github.com/ghtea/store-review-fe)
 
 ### 팀원 🧑🏻‍🤝‍🧑🏻
@@ -18,7 +17,7 @@
 
 
 ### 프로젝트 관련 문서
-기술 스택 및 해결 과제 등 프로젝트 관련 문서 정리는 [해당 Repository의 wiki](https://github.com/BananMoon/StoreReview/wiki)에서 진행 중입니다.
+기술 스택 및 해결 과제 등 프로젝트 관련 문서 정리는 [해당 Repository의 wiki](https://github.com/BananMoon/StoreReview/wiki)에 작성합니다.
 
 ---
 
